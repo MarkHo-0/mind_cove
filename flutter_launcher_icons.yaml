@@ -1,0 +1,23 @@
+# flutter pub run flutter_launcher_icons
+flutter_launcher_icons:
+  image_path: "assets/icon/icon.png"
+
+  android: 
+    generate: true
+    adaptive_icon_background: "#FFFFFF"
+    adaptive_icon_foreground: "assets/icon/icon.png"
+
+  ios: 
+    generate: true
+    remove_alpha_ios: true
+    background_color_ios: "#FFFFFF"
+
+  web: 
+    generate: true
+
+  windows: 
+    generate: true
+    icon_size: 52
+
+  macos: 
+    generate: true
