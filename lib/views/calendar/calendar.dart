@@ -14,7 +14,12 @@ class _CalendarViewState extends State<CalendarView> with AutomaticKeepAliveClie
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-      body: CalendarDatePicker2(config: CalendarDatePicker2Config(), value: _values),
+      body: Column(
+        children: [
+          SizedBox(height: 30),
+          CalendarDatePicker2(config: CalendarDatePicker2Config(), value: _values),
+        ],
+      ),
     );
   }
 
