@@ -92,11 +92,83 @@ abstract class AppLocalizations {
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[Locale('en'), Locale('zh')];
 
+  /// No description provided for @add_location.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Location'**
+  String get add_location;
+
+  /// No description provided for @add_media.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Media'**
+  String get add_media;
+
+  /// No description provided for @add_tags.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Tags'**
+  String get add_tags;
+
+  /// No description provided for @added_n_tags.
+  ///
+  /// In en, this message translates to:
+  /// **'Added {count} tags'**
+  String added_n_tags(Object count);
+
   /// No description provided for @app_name.
   ///
   /// In en, this message translates to:
   /// **'Mind Cove'**
   String get app_name;
+
+  /// No description provided for @close.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get close;
+
+  /// No description provided for @default_username.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown User'**
+  String get default_username;
+
+  /// No description provided for @detail.
+  ///
+  /// In en, this message translates to:
+  /// **'Detail'**
+  String get detail;
+
+  /// No description provided for @diary_delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get diary_delete;
+
+  /// No description provided for @diary_edit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get diary_edit;
+
+  /// No description provided for @error_detail.
+  ///
+  /// In en, this message translates to:
+  /// **'Error Detail'**
+  String get error_detail;
+
+  /// No description provided for @language.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get language;
+
+  /// No description provided for @notify_me.
+  ///
+  /// In en, this message translates to:
+  /// **'Notify me to write'**
+  String get notify_me;
 
   /// No description provided for @page_calendar.
   ///
@@ -121,6 +193,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Wrtie'**
   String get page_write;
+
+  /// No description provided for @selected_n_media.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected {count} media'**
+  String selected_n_media(Object count);
+
+  /// No description provided for @start_writing.
+  ///
+  /// In en, this message translates to:
+  /// **'Starting writing'**
+  String get start_writing;
+
+  /// No description provided for @theme.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get theme;
+
+  /// No description provided for @theme_black.
+  ///
+  /// In en, this message translates to:
+  /// **'Black'**
+  String get theme_black;
+
+  /// No description provided for @theme_light.
+  ///
+  /// In en, this message translates to:
+  /// **'White'**
+  String get theme_light;
+
+  /// No description provided for @theme_system.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get theme_system;
+
+  /// No description provided for @timeline_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Here is your mind cove. Write down some words that belong only to you.'**
+  String get timeline_empty;
+
+  /// No description provided for @timeline_load_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'An error occurred while loading'**
+  String get timeline_load_failed;
+
+  /// No description provided for @timeline_reach_end.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve reached the shore of memery'**
+  String get timeline_reach_end;
+
+  /// No description provided for @write_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Write your thoughts here...'**
+  String get write_hint;
+
+  /// No description provided for @write_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Write'**
+  String get write_title;
+
+  /// No description provided for @write_to_diary.
+  ///
+  /// In en, this message translates to:
+  /// **'Write on my diary!'**
+  String get write_to_diary;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
