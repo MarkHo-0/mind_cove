@@ -50,7 +50,7 @@ Future<List<DiaryMedia>> _processAndSaveMedia(List<DiaryMedia> mediaFiles, Direc
 Future<String> saveDiary({
   required DateTime writtenAt,
   required String content,
-  required String mood,
+  required Mood? mood,
   required String location,
   required Set<String> tags,
   required List<DiaryMedia> mediaFiles,

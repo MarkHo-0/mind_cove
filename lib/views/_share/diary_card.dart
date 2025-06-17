@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:mind_cove/views/_share/mood_renderer.dart';
 
 import '../../diary/model.dart';
 import '../../l10n/generated/app_localizations.dart';
@@ -19,6 +20,18 @@ class DiaryCard extends StatelessWidget {
         padding: const EdgeInsets.all(10),
         child: Stack(
           children: [
+            if (data.mood != null)
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: Opacity(
+                  opacity: 0.2,
+                  child: Tooltip(
+                    message: data.mood!.name,
+                    child: MoodRenderer(mood: data.mood!, size: 32),
+                  ),
+                ),
+              ),
             Positioned(
               top: 0,
               right: 0,

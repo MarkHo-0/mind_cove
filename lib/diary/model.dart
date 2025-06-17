@@ -8,7 +8,7 @@ class Diary {
   final List<DiaryMedia> media;
   final String location;
   final Set<String> tags;
-  final String mood;
+  final Mood? mood;
 
   Diary({
     required this.writtenAt,
@@ -16,7 +16,7 @@ class Diary {
     this.media = const [],
     this.location = '',
     this.tags = const {},
-    this.mood = '',
+    this.mood,
   });
 
   @override
@@ -50,13 +50,14 @@ class Diary {
     }
 
     final content = extract('Content') ?? '';
+    final moodStr = extract('Mood');
 
     return Diary(
       writtenAt: writtenAt,
       content: content,
       location: extract('Location') ?? '',
       tags: extract('Tags')?.split(',').toSet() ?? {},
-      mood: extract('Mood') ?? '',
+      mood: moodStr != null ? Mood.fromString(moodStr) : null,
       media: media,
     );
   }
@@ -66,8 +67,8 @@ class Diary {
 
     b.writeln("## Written At\n${writtenAt.toString()}");
 
-    if (mood.isNotEmpty) {
-      b.writeln("## Mood\n$mood");
+    if (mood != null) {
+      b.writeln("## Mood\n${mood!.name}");
     }
 
     if (location.isNotEmpty) {
@@ -140,3 +141,19 @@ class DiaryMedia {
 }
 
 enum MediaType { image, video, unsupported, notFound }
+
+enum Mood {
+  angry('Angry', '😠'),
+  sad('Sad', '😢'),
+  neutral('Doubtful', '🤨'),
+  happy('Happy', '😀'),
+  surprised('Surprised', '😮');
+
+  final String name;
+  final String emoji;
+  const Mood(this.name, this.emoji);
+
+  static Mood fromString(String name) {
+    return Mood.values.firstWhere((mood) => mood.name.toLowerCase() == name.toLowerCase(), orElse: () => Mood.neutral);
+  }
+}

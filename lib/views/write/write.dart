@@ -5,6 +5,7 @@ import 'package:mind_cove/diary/service.dart';
 import 'package:mind_cove/l10n/generated/app_localizations.dart';
 import 'package:mind_cove/views/_share/horizontal_media_list.dart';
 import 'package:mind_cove/views/_share/styles/padding.dart';
+import 'package:mind_cove/views/write/mood_selector.dart';
 import 'package:mind_cove/views/write/location_maker.dart';
 import 'package:mind_cove/views/write/tag_maker.dart';
 import 'package:provider/provider.dart';
@@ -22,9 +23,8 @@ class _WriteViewState extends State<WriteView> with AutomaticKeepAliveClientMixi
   final TextEditingController contentController = TextEditingController();
   final TextEditingController locationController = TextEditingController();
   final TagsEditingController tagsController = TagsEditingController();
-
+  final MoodEditingController moodController = MoodEditingController();
   List<DiaryMedia> selectedMedia = [];
-  String mood = 'neutral';
 
   @override
   Widget build(BuildContext context) {
@@ -60,6 +60,8 @@ class _WriteViewState extends State<WriteView> with AutomaticKeepAliveClientMixi
                     },
                   ),
                 ),
+
+              MoodSelector(moodController),
 
               ListTile(
                 contentPadding: EdgeInsets.all(0),
@@ -132,7 +134,7 @@ class _WriteViewState extends State<WriteView> with AutomaticKeepAliveClientMixi
     final saveAction = saveDiary(
       writtenAt: DateTime.now(),
       content: contentController.text,
-      mood: mood,
+      mood: moodController.value,
       location: locationController.text,
       tags: tagsController.tags,
       mediaFiles: selectedMedia,
@@ -169,6 +171,7 @@ class _WriteViewState extends State<WriteView> with AutomaticKeepAliveClientMixi
     contentController.dispose();
     locationController.dispose();
     tagsController.dispose();
+    moodController.dispose();
     super.dispose();
   }
 
@@ -176,8 +179,8 @@ class _WriteViewState extends State<WriteView> with AutomaticKeepAliveClientMixi
     contentController.clear();
     locationController.clear();
     tagsController.clear();
+    moodController.clear();
     selectedMedia.clear();
     FocusScope.of(context).unfocus();
-    mood = 'neutral';
   }
 }
