@@ -4,7 +4,8 @@ publish_to: 'none'
 version: 0.1.0
 
 environment:
-  sdk: ^3.8.1
+  sdk: ^3.10.7
+  flutter: ^3.38.6
 
 dependencies:
   calendar_date_picker2: ^2.0.1

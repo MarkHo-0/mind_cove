@@ -140,29 +140,17 @@ class _WriteViewState extends State<WriteView> with AutomaticKeepAliveClientMixi
       mediaFiles: selectedMedia,
     );
 
+    final messenger = ScaffoldMessenger.of(context);
+    final viewProvider = context.read<ViewsProvider>();
+
     saveAction
         .then((savedPath) {
           reset();
-          context.read<ViewsProvider>().changeView(ViewType.timeline);
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(savedPath)));
+          viewProvider.changeView(ViewType.timeline);
+          messenger.showSnackBar(SnackBar(content: Text(savedPath)));
         })
         .onError((err, stack) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(err.toString()),
-              action: SnackBarAction(
-                label: 'detail',
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) {
-                      return AlertDialog(title: Text(err.toString()), content: Text(stack.toString()));
-                    },
-                  );
-                },
-              ),
-            ),
-          );
+          messenger.showSnackBar(SnackBar(content: Text(err.toString())));
         });
   }
 

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
 Future<List<String>?> showTagMaker(BuildContext parentContext, TagsEditingController inputController) async {
-  TagsEditingController previousTagsController = TagsEditingController();
-
   return showModalBottomSheet<List<String>>(
     context: parentContext,
     builder: (BuildContext context) {

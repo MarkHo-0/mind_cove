@@ -4,6 +4,7 @@ import 'package:crypto/crypto.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:flutter/foundation.dart';
 
 import 'model.dart';
 
@@ -87,12 +88,12 @@ Future<List<String>> generateContentPage() async {
       if (!hasMarkdown) continue;
       contentPage.add(folderName);
     } catch (e) {
-      print('Failed to parse date from folder name "$folderName": $e');
+      debugPrint('Failed to parse date from folder name "$folderName": $e');
     }
   }
 
   contentPage.sort((a, b) => b.compareTo(a));
-  print('Found ${contentPage.length} diaries in $baseDir');
+  debugPrint('Found ${contentPage.length} diaries in $baseDir');
 
   return contentPage;
 }
