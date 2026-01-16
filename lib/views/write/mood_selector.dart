@@ -72,6 +72,7 @@ class _MoodSelectorState extends State<MoodSelector> {
 
   Widget _buildEmotionButton(Mood emotion) {
     return TextButton(
+      style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8.0)),
       onPressed: () {
         if (widget.emotionController.equals(emotion)) {
           widget.emotionController.clear();
@@ -84,7 +85,7 @@ class _MoodSelectorState extends State<MoodSelector> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           MoodRenderer(mood: emotion, size: 24),
-          Text(emotion.name, style: TextStyle(fontSize: 16)),
+          Text(emotion.name, style: TextStyle(fontSize: 12)),
         ],
       ),
     );
