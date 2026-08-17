@@ -107,3 +107,11 @@ Future<Diary> loadDiary(String id) async {
   final content = await File(p.join(diaryDir.path, diaryFileName)).readAsString();
   return Diary.fromMarkdown(content, diaryDir.path);
 }
+
+Future<void> deleteDiary(Diary diary) async {
+  final baseDir = await getDiariesFolder();
+  final diaryDir = Directory(p.join(baseDir.path, folderNameFormat.format(diary.writtenAt)));
+  if (await diaryDir.exists()) {
+    await diaryDir.delete(recursive: true);
+  }
+}

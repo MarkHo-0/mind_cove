@@ -16,7 +16,8 @@ class TimelineView extends StatefulWidget {
 }
 
 class _TimelineViewState extends State<TimelineView> with AutomaticKeepAliveClientMixin<TimelineView> {
-  final GlobalKey<AnimatedListState> _animatedListKey = GlobalKey<AnimatedListState>();
+  // 1. 修正 Key 的型態為 SliverAnimatedListState
+  final GlobalKey<SliverAnimatedListState> _animatedListKey = GlobalKey<SliverAnimatedListState>();
   final ScrollController _scrollController = ScrollController();
 
   List<String> diaryIds = [];
@@ -91,12 +92,12 @@ class _TimelineViewState extends State<TimelineView> with AutomaticKeepAliveClie
         .then((fetchedItems) {
           final currentLength = diaries.length;
           diaries.addAll(fetchedItems);
+
+          // 2. Key 正確後，currentState 就能正常抓取並執行動畫插入
           if (_animatedListKey.currentState != null) {
             for (int i = 0; i < fetchedItems.length; i++) {
               _animatedListKey.currentState!.insertItem(currentLength + i);
             }
-          } else {
-            setState(() {});
           }
         })
         .catchError((e) => error = e);
@@ -170,42 +171,19 @@ class _TimelineViewState extends State<TimelineView> with AutomaticKeepAliveClie
       return _buildEmptyWidget();
     }
 
-    return Padding(padding: pagePadding, child: _buildListView());
+    // 3. 移除外層 Padding，邊距改由 _buildListView 裡的 SliverPadding 統一處理
+    return _buildListView();
   }
 
   Widget _buildAnimatedItem(BuildContext context, int index, Animation<double> animation) {
-    if (index >= diaries.length) {
-      if (isLoading) {
-        return const Center(
-          child: Padding(padding: EdgeInsets.all(16.0), child: CircularProgressIndicator()),
-        );
-      }
-      if (allDataLoaded) {
-        return Center(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text(AppLocalizations.of(context)!.timeline_reach_end),
-          ),
-        );
-      }
-      return const SizedBox.shrink();
-    }
+    if (index >= diaries.length) return const SizedBox.shrink();
 
     final diary = diaries[index];
-
     return FadeTransition(
       opacity: animation,
       child: SlideTransition(
         position: animation.drive(Tween<Offset>(begin: const Offset(0, -0.2), end: Offset.zero)),
-        child: DiaryCard(
-          diary,
-          onDelete: () {
-            // TODO: 刪除
-          },
-          onEdit: () {
-            // TODO: 編輯
-          },
-        ),
+        child: DiaryCard(diary, onDelete: () => _handleDeleteDiary(diary), onEdit: () {}),
       ),
     );
   }
@@ -226,7 +204,7 @@ class _TimelineViewState extends State<TimelineView> with AutomaticKeepAliveClie
                   children: [
                     Text(
                       AppLocalizations.of(context)!.timeline_empty,
-                      style: TextStyle(fontSize: 18, color: Colors.grey),
+                      style: const TextStyle(fontSize: 18, color: Colors.grey),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 30),
@@ -249,12 +227,67 @@ class _TimelineViewState extends State<TimelineView> with AutomaticKeepAliveClie
   Widget _buildListView() {
     return RefreshIndicator(
       onRefresh: _handleRefresh,
-      child: AnimatedList(
-        key: _animatedListKey,
+      child: CustomScrollView(
         controller: _scrollController,
-        initialItemCount: diaries.length + ((isLoading || allDataLoaded) ? 1 : 0),
-        itemBuilder: _buildAnimatedItem,
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          SliverPadding(
+            padding: pagePadding,
+            sliver: SliverAnimatedList(
+              key: _animatedListKey,
+              initialItemCount: diaries.length,
+              itemBuilder: _buildAnimatedItem,
+            ),
+          ),
+          SliverToBoxAdapter(child: _buildFooter()),
+        ],
       ),
     );
+  }
+
+  Widget _buildFooter() {
+    if (isLoading) {
+      return const Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+    if (allDataLoaded && diaries.isNotEmpty) {
+      return Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Center(child: Text(AppLocalizations.of(context)!.timeline_reach_end)),
+      );
+    }
+    return const SizedBox.shrink();
+  }
+
+  Widget _buildRemovedItem(Diary diary, Animation<double> animation) {
+    return SizeTransition(
+      sizeFactor: animation,
+      child: FadeTransition(
+        opacity: animation,
+        child: DiaryCard(diary, onDelete: () {}, onEdit: () {}),
+      ),
+    );
+  }
+
+  void _handleDeleteDiary(Diary diary) {
+    deleteDiary(diary)
+        .then((_) {
+          final index = diaries.indexOf(diary);
+          if (index == -1) return;
+
+          final removedDiary = diaries.removeAt(index);
+          diaryIds.removeAt(index);
+
+          _animatedListKey.currentState?.removeItem(
+            index,
+            (context, animation) => _buildRemovedItem(removedDiary, animation),
+            duration: const Duration(milliseconds: 300),
+          );
+        })
+        .catchError((e) {
+          // Handle error
+        });
   }
 }

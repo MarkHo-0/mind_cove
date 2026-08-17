@@ -4,6 +4,7 @@ import 'package:path/path.dart' as p;
 
 class Diary {
   final DateTime writtenAt;
+  final DateTime? editedAt;
   final String content;
   final List<DiaryMedia> media;
   final String location;
@@ -17,6 +18,7 @@ class Diary {
     this.location = '',
     this.tags = const {},
     this.mood,
+    this.editedAt,
   });
 
   @override
@@ -35,6 +37,8 @@ class Diary {
     if (writtenAt == null) {
       throw FormatException('Invalid or missing "Written At" date in markdown');
     }
+
+    final DateTime? editedAt = DateTime.tryParse(extract('Edited At') ?? '');
 
     final mediaHtml = extract('Media');
     final media = <DiaryMedia>[];
@@ -59,6 +63,7 @@ class Diary {
       tags: extract('Tags')?.split(',').toSet() ?? {},
       mood: moodStr != null ? Mood.fromString(moodStr) : null,
       media: media,
+      editedAt: editedAt,
     );
   }
 
