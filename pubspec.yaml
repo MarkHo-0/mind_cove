@@ -8,7 +8,7 @@ environment:
   flutter: ^3.38.6
 
 dependencies:
-  calendar_date_picker2: ^2.0.1
+  calendar_date_picker2: ^3.0.0
   flutter:
     sdk: flutter
   flutter_localizations:
