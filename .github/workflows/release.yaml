@@ -1,0 +1,425 @@
+name: Release Build & Publish
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+# 預設最小權限；需要寫入的 job 自行提升
+permissions:
+  contents: read
+
+# 同一個 tag 不重複執行；已在跑的發佈不取消
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+# 全部使用 bash（含 Windows 的 Git Bash）；GitHub 會自動加上 -eo pipefail
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  # ============================================================
+  # Job 1: 前置檢查 + 版本解析 + 生成更新記錄
+  # ============================================================
+  prepare:
+    name: Prepare Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      build_number: ${{ steps.version.outputs.build_number }}
+      package_name: ${{ steps.package.outputs.package_name }}
+      changelog: ${{ steps.changelog.outputs.changelog }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0   # 需要完整歷史與所有 tag，才能找前一個 tag 與計算 changelog
+          persist-credentials: false
+
+      - name: Verify tag is on the default branch
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          BRANCHES=$(git branch -r --contains "$GITHUB_SHA")
+          if ! grep -qE "^[[:space:]]*origin/${DEFAULT_BRANCH}$" <<< "$BRANCHES"; then
+            echo "::error::Tag $GITHUB_REF_NAME is not on origin/${DEFAULT_BRANCH}. Refusing to release."
+            exit 1
+          fi
+
+      - name: Resolve version and previous tag
+        id: version
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+
+          # 從 pubspec.yaml 讀取 x.y.z+n（只匹配頂層 version:）
+          LINE=$(grep -m1 -E '^version:' pubspec.yaml || true)
+          RE='^version:[[:space:]]*([0-9]+\.[0-9]+\.[0-9]+)\+([0-9]+)'
+          if [[ ! $LINE =~ $RE ]]; then
+            echo "::error::Cannot parse 'version: x.y.z+n' from pubspec.yaml"
+            exit 1
+          fi
+          PUBSPEC_VERSION="${BASH_REMATCH[1]}"
+          BUILD_NUMBER="${BASH_REMATCH[2]}"
+
+          # tag 版本必須與 pubspec 一致
+          if [ "$PUBSPEC_VERSION" != "$VERSION" ]; then
+            echo "::error::Tag version ($VERSION) does not match pubspec.yaml version ($PUBSPEC_VERSION)."
+            exit 1
+          fi
+
+          # 找歷史上真正的前一個 tag（沒有則為空，視為首次發佈）
+          PREV=$(git describe --tags --abbrev=0 --match 'v[0-9]*.[0-9]*.[0-9]*' "${GITHUB_REF_NAME}^" 2>/dev/null || true)
+
+          # build number 必須大於前一版，否則 Google Play 會拒絕 versionCode
+          if [ -n "$PREV" ]; then
+            PREV_PUBSPEC=$(git show "$PREV:pubspec.yaml" 2>/dev/null || true)
+            PREV_LINE=$(grep -m1 -E '^version:' <<< "$PREV_PUBSPEC" || true)
+            if [[ $PREV_LINE =~ $RE ]]; then
+              PREV_BUILD="${BASH_REMATCH[2]}"
+              if [ "$BUILD_NUMBER" -le "$PREV_BUILD" ]; then
+                echo "::error::Build number ($BUILD_NUMBER) must be greater than previous release $PREV ($PREV_BUILD)."
+                exit 1
+              fi
+            fi
+          fi
+
+          {
+            echo "version=$VERSION"
+            echo "build_number=$BUILD_NUMBER"
+            echo "previous_tag=$PREV"
+          } >> "$GITHUB_OUTPUT"
+          echo "Version: $VERSION (build $BUILD_NUMBER), previous tag: ${PREV:-<none>}"
+
+      # Google Play 的 packageName 必須是 applicationId（不是 namespace，兩者可以不同）。
+      # 優先取 applicationId，沒有宣告時才退回 namespace。
+      - name: Resolve Android package name
+        id: package
+        run: |
+          FILE=$(ls android/app/build.gradle.kts android/app/build.gradle 2>/dev/null | head -1 || true)
+          if [ -z "$FILE" ]; then
+            echo "::error::android/app/build.gradle(.kts) not found."
+            exit 1
+          fi
+
+          # 忽略整行註解；支援 Kotlin DSL (applicationId = "x") 與 Groovy (applicationId "x")
+          extract() {
+            grep -vE '^[[:space:]]*//' "$FILE" \
+              | grep -m1 -oE "$1[[:space:]]*=?[[:space:]]*\"[^\"]+\"" \
+              | grep -oE '"[^"]+"' | tr -d '"' || true
+          }
+
+          PKG=$(extract applicationId)
+          [ -z "$PKG" ] && PKG=$(extract namespace)
+
+          if [[ ! $PKG =~ ^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z][A-Za-z0-9_]*)+$ ]]; then
+            echo "::error::Cannot resolve a literal applicationId/namespace from $FILE (got '${PKG}')."
+            exit 1
+          fi
+
+          echo "package_name=$PKG" >> "$GITHUB_OUTPUT"
+          echo "Package name: $PKG"
+
+      - name: Generate changelog
+        id: changelog
+        env:
+          TAG: ${{ github.ref_name }}
+          PREV: ${{ steps.version.outputs.previous_tag }}
+        run: |
+          # 沒有前一個 tag 時，取到此 tag 為止的全部歷史
+          RANGE="${PREV:+refs/tags/$PREV..}refs/tags/$TAG"
+
+          COUNT=$(git rev-list --count "$RANGE")
+          if [ "$COUNT" -eq 0 ]; then
+            echo "::error::No commits found in $RANGE. Nothing to release."
+            exit 1
+          fi
+
+          # 隨機分隔符，避免 commit 內容撞到分隔符；tformat 確保最後一行也有換行
+          DELIM="EOF_$(openssl rand -hex 8)"
+          {
+            echo "changelog<<$DELIM"
+            git log --pretty=tformat:'* %s (%h)' "$RANGE"
+            echo "$DELIM"
+          } >> "$GITHUB_OUTPUT"
+
+  # ============================================================
+  # Job 2: 靜態分析 + 測試（與編譯並行，發佈前必須通過）
+  # ============================================================
+  test:
+    name: Analyze & Test
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          # 版本取自 pubspec.yaml 的 environment.flutter（必須是精確版本，如 3.35.0）
+          flutter-version-file: pubspec.yaml
+          cache: true
+          pub-cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze --no-fatal-infos
+
+      - name: Test
+        run: |
+          if [ -d test ]; then
+            flutter test
+          else
+            echo "No test directory, skipping."
+          fi
+
+  # ============================================================
+  # Job 3A: Android 編譯 (AAB + arm64-v8a APK)
+  # ============================================================
+  build-android:
+    name: Build Android (AAB + APK)
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      VERSION: ${{ needs.prepare.outputs.version }}
+      BUILD_NUMBER: ${{ needs.prepare.outputs.build_number }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # 從 Gradle 設定推算 JDK 版本：
+      # 取 android/ 底下 build.gradle(.kts) 宣告的 Java/Kotlin 目標版本，
+      # 但不低於 17（AGP 8+ 執行 Gradle 至少需要 JDK 17）。
+      - name: Detect Java version from Gradle config
+        id: java
+        run: |
+          MIN=17
+          VERSION=$MIN
+          while IFS= read -r n; do
+            if [ "$n" -gt "$VERSION" ] && [ "$n" -le 30 ]; then
+              VERSION=$n
+            fi
+          done < <(
+            grep -rhoE --include='build.gradle' --include='build.gradle.kts' \
+              '(VERSION_|JVM_|jvmTarget[^0-9]*|jvmToolchain\(|JavaLanguageVersion\.of\()[0-9]+' android 2>/dev/null \
+              | grep -oE '[0-9]+$' || true
+          )
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Using JDK $VERSION"
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: ${{ steps.java.outputs.version }}
+          cache: gradle
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version-file: pubspec.yaml
+          cache: true
+          pub-cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Prepare signing config
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > android/app/release.keystore
+          printf '%s\n' \
+            "storePassword=$KEYSTORE_PASSWORD" \
+            "keyPassword=$KEY_PASSWORD" \
+            "keyAlias=$KEY_ALIAS" \
+            "storeFile=release.keystore" > android/key.properties
+
+      - name: Build AppBundle (AAB)
+        run: |
+          flutter build appbundle --release \
+            --build-name="$VERSION" \
+            --build-number="$BUILD_NUMBER"
+
+      - name: Build APK (arm64-v8a only)
+        run: |
+          flutter build apk --release \
+            --target-platform android-arm64 \
+            --build-name="$VERSION" \
+            --build-number="$BUILD_NUMBER"
+          mkdir -p dist
+          cp build/app/outputs/flutter-apk/app-release.apk "dist/app-v${VERSION}-arm64-v8a.apk"
+
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: android-appbundle
+          path: build/app/outputs/bundle/release/*.aab
+          if-no-files-found: error
+          compression-level: 0   # 已是壓縮格式，不重複壓縮
+          retention-days: 1
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: android-apk
+          path: dist/*.apk
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 1
+
+      - name: Remove signing material
+        if: always()
+        run: rm -f android/app/release.keystore android/key.properties
+
+  # ============================================================
+  # Job 3B: Windows 編譯 (EXE zip)
+  # ============================================================
+  build-windows:
+    name: Build Windows (EXE)
+    needs: prepare
+    runs-on: windows-latest
+    timeout-minutes: 45
+    env:
+      VERSION: ${{ needs.prepare.outputs.version }}
+      BUILD_NUMBER: ${{ needs.prepare.outputs.build_number }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version-file: pubspec.yaml
+          cache: true
+          pub-cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build Windows
+        run: |
+          flutter build windows --release \
+            --build-name="$VERSION" \
+            --build-number="$BUILD_NUMBER"
+
+      - name: Package EXE
+        run: |
+          mkdir -p dist
+          cd build/windows/x64/runner/Release
+          7z a -mx9 "$GITHUB_WORKSPACE/dist/app-v${VERSION}-windows-x64.zip" .
+
+      - name: Upload EXE artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-exe
+          path: dist/*.zip
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 1
+
+  # ============================================================
+  # Job 4A: 發佈到 Google Play（需要 production 環境核准，分階段上線）
+  # ============================================================
+  publish-play:
+    name: Publish to Google Play
+    needs: [prepare, test, build-android]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # 在 Repo Settings → Environments → production 設定 Required reviewers 才會有人工核准
+    environment: production
+    permissions:
+      contents: read
+
+    steps:
+      - name: Download AAB
+        uses: actions/download-artifact@v8
+        with:
+          name: android-appbundle
+          path: artifacts/appbundle
+
+      # Play 的 whatsnew 依語系命名，單檔上限 500 字元
+      - name: Prepare Play release notes
+        env:
+          CHANGELOG: ${{ needs.prepare.outputs.changelog }}
+          WHATSNEW_LOCALE: en-US
+        run: |
+          mkdir -p distribution/whatsnew
+          printf '%s' "$CHANGELOG" \
+            | python3 -c "import sys; print(sys.stdin.read()[:480])" \
+            > "distribution/whatsnew/whatsnew-${WHATSNEW_LOCALE}"
+
+      - name: Upload to Google Play
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_STORE_SERVICE_ACCOUNT_JSON }}
+          packageName: ${{ needs.prepare.outputs.package_name }}
+          releaseFiles: artifacts/appbundle/*.aab
+          track: internal
+          status: completed
+          releaseName: v${{ needs.prepare.outputs.version }}
+          whatsNewDirectory: distribution/whatsnew
+
+  # ============================================================
+  # Job 4B: 建立 GitHub Release
+  # ============================================================
+  release-github:
+    name: Create GitHub Release
+    needs: [prepare, test, build-android, build-windows]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download APK
+        uses: actions/download-artifact@v8
+        with:
+          name: android-apk
+          path: artifacts
+
+      - name: Download Windows package
+        uses: actions/download-artifact@v8
+        with:
+          name: windows-exe
+          path: artifacts
+
+      - name: Write release notes
+        env:
+          CHANGELOG: ${{ needs.prepare.outputs.changelog }}
+        run: printf '%s\n' "$CHANGELOG" > release_notes.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          name: Release v${{ needs.prepare.outputs.version }}
+          body_path: release_notes.md
+          files: |
+            artifacts/*.apk
+            artifacts/*.zip
+          fail_on_unmatched_files: true
+          draft: false
+          prerelease: false
