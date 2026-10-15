@@ -31,6 +31,7 @@ jobs:
       version: ${{ steps.version.outputs.version }}
       build_number: ${{ steps.version.outputs.build_number }}
       package_name: ${{ steps.package.outputs.package_name }}
+      flutter_version: ${{ steps.flutter.outputs.flutter_version }}
       changelog: ${{ steps.changelog.outputs.changelog }}
 
     steps:
@@ -123,6 +124,21 @@ jobs:
           echo "package_name=$PKG" >> "$GITHUB_OUTPUT"
           echo "Package name: $PKG"
 
+      # pubspec 的 environment.flutter 可以是 3.38.6、^3.38.6 或 ">=3.38.6 <4.0.0"，
+      # 取其中第一個 x.y.z（即最低版本）作為 CI 使用的 Flutter 版本。
+      # （flutter-action 的 flutter-version-file 只接受精確版本，不支援 ^ 或範圍）
+      - name: Resolve Flutter version
+        id: flutter
+        run: |
+          LINE=$(grep -m1 -E "^[[:space:]]+flutter:[^0-9#]*[0-9]+\.[0-9]+\.[0-9]+" pubspec.yaml || true)
+          VERSION=$(sed -E 's/^[^0-9]*([0-9]+\.[0-9]+\.[0-9]+).*/\1/' <<< "$LINE")
+          if [[ ! $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Cannot find a Flutter version in pubspec.yaml (environment: flutter: ...)."
+            exit 1
+          fi
+          echo "flutter_version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Flutter version: $VERSION"
+
       - name: Generate changelog
         id: changelog
         env:
@@ -165,8 +181,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-          # 版本取自 pubspec.yaml 的 environment.flutter（必須是精確版本，如 3.35.0）
-          flutter-version-file: pubspec.yaml
+          flutter-version: ${{ needs.prepare.outputs.flutter_version }}
           cache: true
           pub-cache: true
 
@@ -233,7 +248,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version-file: pubspec.yaml
+          flutter-version: ${{ needs.prepare.outputs.flutter_version }}
           cache: true
           pub-cache: true
 
@@ -313,7 +328,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version-file: pubspec.yaml
+          flutter-version: ${{ needs.prepare.outputs.flutter_version }}
           cache: true
           pub-cache: true
 
@@ -342,7 +357,7 @@ jobs:
           retention-days: 1
 
   # ============================================================
-  # Job 4A: 發佈到 Google Play（需要 production 環境核准，分階段上線）
+  # Job 4A: 發佈到 Google Play 內部測試軌道（internal）
   # ============================================================
   publish-play:
     name: Publish to Google Play
