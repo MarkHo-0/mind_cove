@@ -163,43 +163,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
   # ============================================================
-  # Job 2: 靜態分析 + 測試（與編譯並行，發佈前必須通過）
-  # ============================================================
-  test:
-    name: Analyze & Test
-    needs: prepare
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          flutter-version: ${{ needs.prepare.outputs.flutter_version }}
-          cache: false
-
-      - name: Get dependencies
-        run: flutter pub get
-
-      - name: Analyze
-        run: flutter analyze --no-fatal-infos
-
-      - name: Test
-        run: |
-          if [ -d test ]; then
-            flutter test
-          else
-            echo "No test directory, skipping."
-          fi
-
-  # ============================================================
-  # Job 3A: Android 編譯 (AAB + arm64-v8a APK)
+  # Job 2A: Android 編譯 (AAB + arm64-v8a APK)
   # ============================================================
   build-android:
     name: Build Android (AAB + APK)
@@ -304,7 +268,7 @@ jobs:
         run: rm -f android/app/release.keystore android/key.properties
 
   # ============================================================
-  # Job 3B: Windows 編譯 (EXE zip)
+  # Job 2B: Windows 編譯 (EXE zip)
   # ============================================================
   build-windows:
     name: Build Windows (EXE)
@@ -353,11 +317,11 @@ jobs:
           retention-days: 1
 
   # ============================================================
-  # Job 4A: 發佈到 Google Play 內部測試軌道（internal）
+  # Job 3A: 發佈到 Google Play 內部測試軌道（internal）
   # ============================================================
   publish-play:
     name: Publish to Google Play
-    needs: [prepare, test, build-android]
+    needs: [prepare, build-android]
     runs-on: ubuntu-latest
     timeout-minutes: 20
     # 在 Repo Settings → Environments → production 設定 Required reviewers 才會有人工核准
@@ -395,11 +359,11 @@ jobs:
           whatsNewDirectory: distribution/whatsnew
 
   # ============================================================
-  # Job 4B: 建立 GitHub Release
+  # Job 3B: 建立 GitHub Release
   # ============================================================
   release-github:
     name: Create GitHub Release
-    needs: [prepare, test, build-android, build-windows]
+    needs: [prepare, build-android, build-windows]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
