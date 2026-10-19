@@ -1,18 +1,12 @@
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
-import 'package:intl/intl.dart' show DateFormat;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/foundation.dart';
 
+import '../constants.dart';
 import 'model.dart';
-
-const String savingFolderName = 'MindCove';
-
-const String diaryFolderName = 'diaries';
-final DateFormat folderNameFormat = diaryFolderNameFormat;
-const String diaryFileName = 'diary.md';
 
 Future<Directory>? _diariesFolderFuture;
 
@@ -24,7 +18,7 @@ Future<Directory> getDiariesFolder() {
 }
 
 Future<Directory> _createDiaryFolder(DateTime date) async {
-  final safeName = folderNameFormat.format(date);
+  final safeName = diaryFolderNameFormat.format(date);
   final folder = Directory(p.join((await getDiariesFolder()).path, safeName));
   await folder.create(recursive: true);
   return folder;
@@ -85,7 +79,7 @@ Future<List<DiaryIndexEntry>> readDiaryIds() async {
 
     final folderName = p.basename(entry.path);
     try {
-      final writtenAt = folderNameFormat.parse(folderName);
+      final writtenAt = diaryFolderNameFormat.parse(folderName);
       final bool hasMarkdown = await File(p.join(entry.path, diaryFileName)).exists();
       if (!hasMarkdown) continue;
       diaryIds.add(DiaryIndexEntry(id: folderName, writtenAt: writtenAt));
@@ -112,7 +106,7 @@ Future<Diary> loadDiary(String id) async {
 
 Future<void> deleteDiary(Diary diary) async {
   final baseDir = await getDiariesFolder();
-  final diaryDir = Directory(p.join(baseDir.path, folderNameFormat.format(diary.writtenAt)));
+  final diaryDir = Directory(p.join(baseDir.path, diaryFolderNameFormat.format(diary.writtenAt)));
   if (await diaryDir.exists()) {
     await diaryDir.delete(recursive: true);
   }

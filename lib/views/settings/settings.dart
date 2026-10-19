@@ -40,8 +40,8 @@ class _SettingsViewState extends State<SettingsView> with AutomaticKeepAliveClie
               dropdownMenuEntries: AppLocalizations.supportedLocales.map((locale) {
                 return DropdownMenuEntry(value: locale.languageCode, label: locale.toString());
               }).toList(),
-              onSelected: (value) => settings.setLanguage(value!),
-              initialSelection: settings.languageCode,
+              onSelected: (value) => settings.set(AppSettings.languageCode, value!),
+              initialSelection: settings.get(AppSettings.languageCode),
               inputDecorationTheme: InputDecorationTheme(
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(5)),
                 constraints: BoxConstraints.tight(const Size.fromHeight(40)),
@@ -59,8 +59,8 @@ class _SettingsViewState extends State<SettingsView> with AutomaticKeepAliveClie
                 DropdownMenuEntry(value: Brightness.light, label: AppLocalizations.of(context)!.theme_light),
                 DropdownMenuEntry(value: Brightness.dark, label: AppLocalizations.of(context)!.theme_black),
               ],
-              onSelected: (value) => settings.setBrightness(value),
-              initialSelection: settings.brightness,
+              onSelected: (value) => settings.set(AppSettings.brightness, value),
+              initialSelection: settings.get(AppSettings.brightness),
               inputDecorationTheme: InputDecorationTheme(
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(5)),
                 constraints: BoxConstraints.tight(const Size.fromHeight(40)),
@@ -73,10 +73,8 @@ class _SettingsViewState extends State<SettingsView> with AutomaticKeepAliveClie
             leading: const Icon(Icons.notifications),
             title: Text(AppLocalizations.of(context)!.notify_me),
             trailing: Switch(
-              value: false,
-              onChanged: (value) {
-                // Implement notification toggle logic here
-              },
+              value: settings.get(AppSettings.notificationsEnabled),
+              onChanged: (value) => settings.set(AppSettings.notificationsEnabled, value),
             ),
           ),
         ],

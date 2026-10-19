@@ -36,8 +36,8 @@ class _MainAppState extends State<MainApp> {
   @override
   Widget build(BuildContext context) {
     final settings = context.watch<SettingsProvider>();
-    final brightness = settings.brightness ?? MediaQuery.platformBrightnessOf(context);
-    final locale = Locale(settings.languageCode);
+    final brightness = settings.get(AppSettings.brightness) ?? MediaQuery.platformBrightnessOf(context);
+    final locale = Locale(settings.get(AppSettings.languageCode));
 
     return MaterialApp(
       title: 'Mind Cove',

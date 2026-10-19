@@ -1,10 +1,9 @@
 import 'dart:io';
 
 import 'package:cross_file/cross_file.dart';
-import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 
-final DateFormat diaryFolderNameFormat = DateFormat('yyyy-MM-dd HH-mm-ss');
+import '../constants.dart';
 
 class DiaryIndexEntry {
   final String id;
