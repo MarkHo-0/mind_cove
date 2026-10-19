@@ -27,7 +27,7 @@ class _TimelineViewState extends State<TimelineView> with AutomaticKeepAliveClie
   bool allDataLoaded = false;
   Object? error;
   bool _hasRenderedDiaryItems = false;
-  final Set<String> _pendingDiaryIds = {};
+  bool _isAddingDiary = false;
 
   @override
   bool get wantKeepAlive => true;
@@ -35,14 +35,14 @@ class _TimelineViewState extends State<TimelineView> with AutomaticKeepAliveClie
   @override
   void initState() {
     super.initState();
-    context.read<DiaryIndexProvider>().addListener(_handleDiaryIndexChanged);
+    context.read<DiaryIndexProvider>().addListener(_handleNewestDiaryAdded);
     _loadDiaryItems(context.read<DiaryIndexProvider>().getDiaryEntries());
     _scrollController.addListener(onScrollTimeLine);
   }
 
   @override
   void dispose() {
-    context.read<DiaryIndexProvider>().removeListener(_handleDiaryIndexChanged);
+    context.read<DiaryIndexProvider>().removeListener(_handleNewestDiaryAdded);
     _scrollController.removeListener(onScrollTimeLine);
     _scrollController.dispose();
     super.dispose();
@@ -75,16 +75,18 @@ class _TimelineViewState extends State<TimelineView> with AutomaticKeepAliveClie
     }
   }
 
-  void _handleDiaryIndexChanged() {
-    if (!mounted || !_hasRenderedDiaryItems || isLoading) return;
+  void _handleNewestDiaryAdded() {
+    if (!mounted || !_hasRenderedDiaryItems || isLoading || _isAddingDiary) return;
 
-    final diaryIndexProvider = context.read<DiaryIndexProvider>();
-    final existingIds = {...diaries.map((diary) => DiaryIndexEntry.fromDate(diary.writtenAt).id), ..._pendingDiaryIds};
-    final newEntries = diaryIndexProvider.diaryEntries.where((entry) => !existingIds.contains(entry.id)).toList();
-    if (newEntries.isEmpty) return;
+    final diaryEntries = context.read<DiaryIndexProvider>().diaryEntries;
+    if (diaryEntries.isEmpty) return;
 
-    _pendingDiaryIds.add(newEntries.first.id);
-    _handleAddDiary(newEntries.first);
+    final newestEntry = diaryEntries.first;
+    final newestDiaryId = diaries.isEmpty ? null : DiaryIndexEntry.fromDate(diaries.first.writtenAt).id;
+    if (newestEntry.id == newestDiaryId) return;
+
+    _isAddingDiary = true;
+    _handleAddDiary(newestEntry);
   }
 
   Future<void> _handleAddDiary(DiaryIndexEntry entry) async {
@@ -97,7 +99,7 @@ class _TimelineViewState extends State<TimelineView> with AutomaticKeepAliveClie
     } catch (e) {
       if (mounted) setState(() => error = e);
     } finally {
-      _pendingDiaryIds.remove(entry.id);
+      _isAddingDiary = false;
     }
   }
 
