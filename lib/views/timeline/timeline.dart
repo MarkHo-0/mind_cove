@@ -26,6 +26,8 @@ class _TimelineViewState extends State<TimelineView> with AutomaticKeepAliveClie
   final int itemsPerFetch = 10;
   bool allDataLoaded = false;
   Object? error;
+  bool _hasRenderedDiaryItems = false;
+  final Set<String> _pendingDiaryIds = {};
 
   @override
   bool get wantKeepAlive => true;
@@ -33,12 +35,14 @@ class _TimelineViewState extends State<TimelineView> with AutomaticKeepAliveClie
   @override
   void initState() {
     super.initState();
+    context.read<DiaryIndexProvider>().addListener(_handleDiaryIndexChanged);
     _loadDiaryItems(context.read<DiaryIndexProvider>().getDiaryEntries());
     _scrollController.addListener(onScrollTimeLine);
   }
 
   @override
   void dispose() {
+    context.read<DiaryIndexProvider>().removeListener(_handleDiaryIndexChanged);
     _scrollController.removeListener(onScrollTimeLine);
     _scrollController.dispose();
     super.dispose();
@@ -63,10 +67,57 @@ class _TimelineViewState extends State<TimelineView> with AutomaticKeepAliveClie
         }
       }
       await _fetchMoreItems();
+      _hasRenderedDiaryItems = true;
     } catch (e) {
       if (mounted) setState(() => error = e);
     } finally {
       if (mounted) setState(() => isLoading = false);
+    }
+  }
+
+  void _handleDiaryIndexChanged() {
+    if (!mounted || !_hasRenderedDiaryItems || isLoading) return;
+
+    final diaryIndexProvider = context.read<DiaryIndexProvider>();
+    final existingIds = {...diaries.map((diary) => DiaryIndexEntry.fromDate(diary.writtenAt).id), ..._pendingDiaryIds};
+    final newEntries = diaryIndexProvider.diaryEntries.where((entry) => !existingIds.contains(entry.id)).toList();
+    if (newEntries.isEmpty) return;
+
+    _pendingDiaryIds.add(newEntries.first.id);
+    _handleAddDiary(newEntries.first);
+  }
+
+  Future<void> _handleAddDiary(DiaryIndexEntry entry) async {
+    try {
+      final diary = await loadDiary(entry.id);
+      if (!mounted) return;
+
+      diaries.insert(0, diary);
+      _animatedListKey.currentState?.insertItem(0, duration: const Duration(milliseconds: 500));
+    } catch (e) {
+      if (mounted) setState(() => error = e);
+    } finally {
+      _pendingDiaryIds.remove(entry.id);
+    }
+  }
+
+  Future<void> _handleDeleteDiary(Diary diary) async {
+    final diaryIndexProvider = context.read<DiaryIndexProvider>();
+    try {
+      await diaryIndexProvider.deleteDiary(diary);
+      if (!mounted) return;
+
+      final index = diaries.indexOf(diary);
+      if (index == -1) return;
+
+      final removedDiary = diaries.removeAt(index);
+      _animatedListKey.currentState?.removeItem(
+        index,
+        (context, animation) => _buildRemovedItem(removedDiary, animation),
+        duration: const Duration(milliseconds: 300),
+      );
+    } catch (e) {
+      if (mounted) setState(() => error = e);
     }
   }
 
@@ -266,26 +317,5 @@ class _TimelineViewState extends State<TimelineView> with AutomaticKeepAliveClie
         child: DiaryCard(diary, onDelete: () {}, onEdit: () {}),
       ),
     );
-  }
-
-  void _handleDeleteDiary(Diary diary) {
-    final diaryIndexProvider = context.read<DiaryIndexProvider>();
-    diaryIndexProvider
-        .deleteDiary(diary)
-        .then((_) {
-          final index = diaries.indexOf(diary);
-          if (index == -1) return;
-
-          final removedDiary = diaries.removeAt(index);
-
-          _animatedListKey.currentState?.removeItem(
-            index,
-            (context, animation) => _buildRemovedItem(removedDiary, animation),
-            duration: const Duration(milliseconds: 300),
-          );
-        })
-        .catchError((e) {
-          // Handle error
-        });
   }
 }
