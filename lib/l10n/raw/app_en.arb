@@ -12,6 +12,7 @@
   "diary_delete": "Delete",
   "diary_edit": "Edit",
   "edit_diary_title": "Edit Diary",
+  "mood": "{mood, select, Angry {Angry} Sad {Sad} Doubtful {Doubtful} Happy {Happy} Surprised {Surprised} other {Doubtful}}",
   "error_detail": "Error Detail",
   "language": "Language",
   "notify_me": "Notify me to write",

@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:mind_cove/diary/model.dart' show Mood;
+import 'package:mind_cove/l10n/generated/app_localizations.dart';
 import 'package:mind_cove/views/_share/mood_renderer.dart';
 
 class MoodSelector extends StatefulWidget {
@@ -51,6 +52,7 @@ class _MoodSelectorState extends State<MoodSelector> {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16.0),
       child: Row(
@@ -58,19 +60,22 @@ class _MoodSelectorState extends State<MoodSelector> {
         children: Mood.values.map((emotion) {
           // 選擇中情緒時，顯示彩色按鈕
           if (widget.emotionController.equals(emotion)) {
-            return Expanded(child: _buildEmotionButton(emotion));
+            return Expanded(child: _buildEmotionButton(context, emotion, localizations));
           }
 
           // 非選擇中情緒時，顯示灰階按鈕
           return Expanded(
-            child: ColorFiltered(colorFilter: greyscale, child: _buildEmotionButton(emotion)),
+            child: ColorFiltered(
+              colorFilter: greyscale,
+              child: _buildEmotionButton(context, emotion, localizations),
+            ),
           );
         }).toList(),
       ),
     );
   }
 
-  Widget _buildEmotionButton(Mood emotion) {
+  Widget _buildEmotionButton(BuildContext context, Mood emotion, AppLocalizations localizations) {
     return TextButton(
       style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8.0)),
       onPressed: () {
@@ -85,7 +90,7 @@ class _MoodSelectorState extends State<MoodSelector> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           MoodRenderer(mood: emotion, size: 24),
-          Text(emotion.name, style: TextStyle(fontSize: 12)),
+          Text(localizations.mood(emotion.name), style: const TextStyle(fontSize: 12)),
         ],
       ),
     );

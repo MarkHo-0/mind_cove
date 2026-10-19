@@ -12,6 +12,7 @@
   "diary_delete": "刪除",
   "diary_edit": "編輯",
   "edit_diary_title": "編輯日記",
+  "mood": "{mood, select, Angry {生氣} Sad {難過} Doubtful {懷疑} Happy {開心} Surprised {驚訝} other {懷疑}}",
   "error_detail": "錯誤詳情",
   "language": "語言",
   "notify_me": "提醒我寫日誌",

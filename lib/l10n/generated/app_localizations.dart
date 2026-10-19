@@ -170,6 +170,12 @@ abstract class AppLocalizations {
   /// **'Edit Diary'**
   String get edit_diary_title;
 
+  /// No description provided for @mood.
+  ///
+  /// In en, this message translates to:
+  /// **'{mood, select, Angry {Angry} Sad {Sad} Doubtful {Doubtful} Happy {Happy} Surprised {Surprised} other {Doubtful}}'**
+  String mood(String mood);
+
   /// No description provided for @error_detail.
   ///
   /// In en, this message translates to:

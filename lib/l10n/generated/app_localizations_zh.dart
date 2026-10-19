@@ -51,6 +51,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get edit_diary_title => '編輯日記';
 
   @override
+  String mood(String mood) {
+    String _temp0 = intl.Intl.selectLogic(mood, {
+      'Angry': '生氣',
+      'Sad': '難過',
+      'Doubtful': '懷疑',
+      'Happy': '開心',
+      'Surprised': '驚訝',
+      'other': '懷疑',
+    });
+    return '$_temp0';
+  }
+
+  @override
   String get error_detail => '錯誤詳情';
 
   @override

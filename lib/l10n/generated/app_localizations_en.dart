@@ -51,6 +51,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get edit_diary_title => 'Edit Diary';
 
   @override
+  String mood(String mood) {
+    String _temp0 = intl.Intl.selectLogic(mood, {
+      'Angry': 'Angry',
+      'Sad': 'Sad',
+      'Doubtful': 'Doubtful',
+      'Happy': 'Happy',
+      'Surprised': 'Surprised',
+      'other': 'Doubtful',
+    });
+    return '$_temp0';
+  }
+
+  @override
   String get error_detail => 'Error Detail';
 
   @override

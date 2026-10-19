@@ -28,7 +28,7 @@ class DiaryCard extends StatelessWidget {
                 child: Opacity(
                   opacity: 0.2,
                   child: Tooltip(
-                    message: data.mood!.name,
+                    message: AppLocalizations.of(context)!.mood(data.mood!.name),
                     child: MoodRenderer(mood: data.mood!, size: 32),
                   ),
                 ),
