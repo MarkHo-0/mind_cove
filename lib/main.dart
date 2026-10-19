@@ -3,10 +3,13 @@ import 'dart:ui';
 
 import 'package:material_ui/material_ui.dart';
 import 'package:mind_cove/views/application.dart' show ApplicationContainer;
+
 import 'l10n/generated/app_localizations.dart';
+
 import 'package:provider/provider.dart';
 
 import 'providers/settings.dart';
+import 'providers/diary_index.dart';
 import 'providers/views.dart';
 
 void main() async {
@@ -14,6 +17,7 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider<SettingsProvider>(create: (_) => SettingsProvider()),
+        ChangeNotifierProvider<DiaryIndexProvider>(create: (_) => DiaryIndexProvider()),
         ChangeNotifierProvider<ViewsProvider>(create: (_) => ViewsProvider()),
       ],
       child: const MainApp(),

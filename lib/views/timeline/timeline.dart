@@ -7,6 +7,7 @@ import 'package:mind_cove/views/_share/styles/padding.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/views.dart';
+import '../../providers/diary_index.dart';
 
 class TimelineView extends StatefulWidget {
   const TimelineView({super.key});
@@ -20,7 +21,6 @@ class _TimelineViewState extends State<TimelineView> with AutomaticKeepAliveClie
   final GlobalKey<SliverAnimatedListState> _animatedListKey = GlobalKey<SliverAnimatedListState>();
   final ScrollController _scrollController = ScrollController();
 
-  List<String> diaryIds = [];
   final List<Diary> diaries = [];
   bool isLoading = true;
   final int itemsPerFetch = 10;
@@ -33,7 +33,7 @@ class _TimelineViewState extends State<TimelineView> with AutomaticKeepAliveClie
   @override
   void initState() {
     super.initState();
-    loadDiaryIds();
+    _loadDiaryItems(context.read<DiaryIndexProvider>().getDiaryEntries());
     _scrollController.addListener(onScrollTimeLine);
   }
 
@@ -44,67 +44,63 @@ class _TimelineViewState extends State<TimelineView> with AutomaticKeepAliveClie
     super.dispose();
   }
 
-  void addNewDiary(Diary newDiary) {
-    diaryIds.insert(0, newDiary.writtenAt.toIso8601String());
-    diaries.insert(0, newDiary);
-    _animatedListKey.currentState?.insertItem(0, duration: const Duration(milliseconds: 500));
-  }
-
-  Future<void> loadDiaryIds() async {
+  Future<void> _loadDiaryItems(Future<List<DiaryIndexEntry>> diaryEntriesFuture) async {
     setState(() {
       isLoading = true;
       error = null;
       allDataLoaded = false;
     });
 
-    generateContentPage()
-        .then((fetchedIds) async {
-          setState(() {
-            diaryIds = fetchedIds;
-            final initialCount = diaries.length;
-            diaries.clear();
-            if (_animatedListKey.currentState != null) {
-              for (int i = 0; i < initialCount; i++) {
-                _animatedListKey.currentState!.removeItem(0, (context, animation) => const SizedBox.shrink());
-              }
-            }
-          });
-          await _fetchMoreItems();
-        })
-        .catchError((e) => error = e)
-        .whenComplete(() => setState(() => isLoading = false));
+    try {
+      await diaryEntriesFuture;
+      if (!mounted) return;
+
+      final initialCount = diaries.length;
+      diaries.clear();
+      if (_animatedListKey.currentState != null) {
+        for (int i = 0; i < initialCount; i++) {
+          _animatedListKey.currentState!.removeItem(0, (context, animation) => const SizedBox.shrink());
+        }
+      }
+      await _fetchMoreItems();
+    } catch (e) {
+      if (mounted) setState(() => error = e);
+    } finally {
+      if (mounted) setState(() => isLoading = false);
+    }
   }
 
   Future<void> _fetchMoreItems() async {
     if (allDataLoaded) return;
 
+    final diaryEntries = context.read<DiaryIndexProvider>().diaryEntries;
     final int startIndex = diaries.length;
     int endIndex = diaries.length + itemsPerFetch;
 
-    if (endIndex > diaryIds.length) {
-      endIndex = diaryIds.length;
+    if (endIndex > diaryEntries.length) {
+      endIndex = diaryEntries.length;
       setState(() => allDataLoaded = true);
     }
 
-    final idsToFetch = diaryIds.sublist(startIndex, endIndex);
+    final idsToFetch = diaryEntries.sublist(startIndex, endIndex);
 
-    Future.wait(idsToFetch.map((id) => loadDiary(id)).toList())
-        .then((fetchedItems) {
-          final currentLength = diaries.length;
-          diaries.addAll(fetchedItems);
+    try {
+      final fetchedItems = await Future.wait(idsToFetch.map((entry) => loadDiary(entry.id)).toList());
+      final currentLength = diaries.length;
+      diaries.addAll(fetchedItems);
 
-          // 2. Key 正確後，currentState 就能正常抓取並執行動畫插入
-          if (_animatedListKey.currentState != null) {
-            for (int i = 0; i < fetchedItems.length; i++) {
-              _animatedListKey.currentState!.insertItem(currentLength + i);
-            }
-          }
-        })
-        .catchError((e) => error = e);
+      if (_animatedListKey.currentState != null) {
+        for (int i = 0; i < fetchedItems.length; i++) {
+          _animatedListKey.currentState!.insertItem(currentLength + i);
+        }
+      }
+    } catch (e) {
+      if (mounted) setState(() => error = e);
+    }
   }
 
   Future<void> _handleRefresh() async {
-    await loadDiaryIds();
+    await _loadDiaryItems(context.read<DiaryIndexProvider>().getDiaryEntries(forceRefresh: true));
   }
 
   void onScrollTimeLine() {
@@ -163,11 +159,12 @@ class _TimelineViewState extends State<TimelineView> with AutomaticKeepAliveClie
   }
 
   Widget _buildBody() {
+    final diaryEntries = context.watch<DiaryIndexProvider>().diaryEntries;
     if (isLoading && diaries.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (diaryIds.isEmpty && !isLoading) {
+    if (diaryEntries.isEmpty && !isLoading) {
       return _buildEmptyWidget();
     }
 
@@ -272,13 +269,14 @@ class _TimelineViewState extends State<TimelineView> with AutomaticKeepAliveClie
   }
 
   void _handleDeleteDiary(Diary diary) {
-    deleteDiary(diary)
+    final diaryIndexProvider = context.read<DiaryIndexProvider>();
+    diaryIndexProvider
+        .deleteDiary(diary)
         .then((_) {
           final index = diaries.indexOf(diary);
           if (index == -1) return;
 
           final removedDiary = diaries.removeAt(index);
-          diaryIds.removeAt(index);
 
           _animatedListKey.currentState?.removeItem(
             index,

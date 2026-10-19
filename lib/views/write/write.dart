@@ -1,7 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mind_cove/diary/model.dart';
-import 'package:mind_cove/diary/service.dart';
 import 'package:mind_cove/l10n/generated/app_localizations.dart';
 import 'package:mind_cove/views/_share/horizontal_media_list.dart';
 import 'package:mind_cove/views/_share/styles/padding.dart';
@@ -11,6 +10,7 @@ import 'package:mind_cove/views/write/tag_maker.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/views.dart';
+import '../../providers/diary_index.dart';
 
 class WriteView extends StatefulWidget {
   const WriteView({super.key});
@@ -131,19 +131,20 @@ class _WriteViewState extends State<WriteView> with AutomaticKeepAliveClientMixi
       return;
     }
 
-    final saveAction = saveDiary(
-      writtenAt: DateTime.now(),
-      content: contentController.text,
-      mood: moodController.value,
-      location: locationController.text,
-      tags: tagsController.tags,
-      mediaFiles: selectedMedia,
-    );
-
+    final writtenAt = DateTime.now();
     final messenger = ScaffoldMessenger.of(context);
     final viewProvider = context.read<ViewsProvider>();
+    final diaryIndexProvider = context.read<DiaryIndexProvider>();
 
-    saveAction
+    diaryIndexProvider
+        .saveDiary(
+          writtenAt: writtenAt,
+          content: contentController.text,
+          mood: moodController.value,
+          location: locationController.text,
+          tags: tagsController.tags,
+          mediaFiles: selectedMedia,
+        )
         .then((savedPath) {
           reset();
           viewProvider.changeView(ViewType.timeline);

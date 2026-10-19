@@ -11,11 +11,13 @@ import 'model.dart';
 const String savingFolderName = 'MindCove';
 
 const String diaryFolderName = 'diaries';
-final DateFormat folderNameFormat = DateFormat('yyyy-MM-dd HH-mm-ss');
+final DateFormat folderNameFormat = diaryFolderNameFormat;
 const String diaryFileName = 'diary.md';
 
-Future<Directory> getDiariesFolder() async {
-  return getApplicationDocumentsDirectory().then((dir) {
+Future<Directory>? _diariesFolderFuture;
+
+Future<Directory> getDiariesFolder() {
+  return _diariesFolderFuture ??= getApplicationDocumentsDirectory().then((dir) {
     final diaryDir = Directory(p.join(dir.path, savingFolderName, diaryFolderName));
     return diaryDir.create(recursive: true);
   });
@@ -71,31 +73,31 @@ Future<String> saveDiary({
   return Future.value(fullPath.toString());
 }
 
-Future<List<String>> generateContentPage() async {
+Future<List<DiaryIndexEntry>> readDiaryIds() async {
   final baseDir = await getDiariesFolder();
   if (!await baseDir.exists()) return [];
 
   final entries = await baseDir.list().toList();
-  final contentPage = <String>[];
+  final diaryIds = <DiaryIndexEntry>[];
 
   for (final entry in entries) {
     if (entry is! Directory) continue;
 
     final folderName = p.basename(entry.path);
     try {
-      folderNameFormat.parse(folderName);
+      final writtenAt = folderNameFormat.parse(folderName);
       final bool hasMarkdown = await File(p.join(entry.path, diaryFileName)).exists();
       if (!hasMarkdown) continue;
-      contentPage.add(folderName);
+      diaryIds.add(DiaryIndexEntry(id: folderName, writtenAt: writtenAt));
     } catch (e) {
       debugPrint('Failed to parse date from folder name "$folderName": $e');
     }
   }
 
-  contentPage.sort((a, b) => b.compareTo(a));
-  debugPrint('Found ${contentPage.length} diaries in $baseDir');
+  diaryIds.sort((a, b) => b.id.compareTo(a.id));
+  debugPrint('Found ${diaryIds.length} diaries in $baseDir');
 
-  return contentPage;
+  return diaryIds;
 }
 
 Future<Diary> loadDiary(String id) async {

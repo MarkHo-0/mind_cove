@@ -1,6 +1,21 @@
 import 'dart:io';
+
 import 'package:cross_file/cross_file.dart';
+import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
+
+final DateFormat diaryFolderNameFormat = DateFormat('yyyy-MM-dd HH-mm-ss');
+
+class DiaryIndexEntry {
+  final String id;
+  final DateTime writtenAt;
+
+  const DiaryIndexEntry({required this.id, required this.writtenAt});
+
+  factory DiaryIndexEntry.fromDate(DateTime writtenAt) {
+    return DiaryIndexEntry(id: diaryFolderNameFormat.format(writtenAt), writtenAt: writtenAt);
+  }
+}
 
 class Diary {
   final DateTime writtenAt;
