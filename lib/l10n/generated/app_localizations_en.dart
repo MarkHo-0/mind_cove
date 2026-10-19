@@ -27,7 +27,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get app_name => 'Mind Cove';
 
   @override
+  String get cancel => 'Cancel';
+
+  @override
   String get close => 'Close';
+
+  @override
+  String get clear => 'Clear';
 
   @override
   String get default_username => 'Unknown User';
@@ -40,6 +46,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diary_edit => 'Edit';
+
+  @override
+  String get edit_diary_title => 'Edit Diary';
 
   @override
   String get error_detail => 'Error Detail';
@@ -86,6 +95,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get timeline_empty => 'Here is your mind cove. Write down some words that belong only to you.';
 
   @override
+  String timeline_filtered_by_tag(Object tag) {
+    return 'Filtered by #$tag';
+  }
+
+  @override
+  String timeline_no_tag_results(Object tag) {
+    return 'No diaries found with #$tag.';
+  }
+
+  @override
   String get timeline_load_failed => 'An error occurred while loading';
 
   @override
@@ -99,4 +118,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get write_to_diary => 'Write on my diary!';
+
+  @override
+  String get update_diary => 'Save Changes';
 }

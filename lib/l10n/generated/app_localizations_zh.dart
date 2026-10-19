@@ -27,7 +27,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get app_name => '心靈小海灣';
 
   @override
+  String get cancel => '取消';
+
+  @override
   String get close => '關閉';
+
+  @override
+  String get clear => '清除';
 
   @override
   String get default_username => '無名氏';
@@ -40,6 +46,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diary_edit => '編輯';
+
+  @override
+  String get edit_diary_title => '編輯日記';
 
   @override
   String get error_detail => '錯誤詳情';
@@ -86,6 +95,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get timeline_empty => '這裡是你的心靈小灣～寫下一些話，只屬於你自己。';
 
   @override
+  String timeline_filtered_by_tag(Object tag) {
+    return '目前篩選標籤：#$tag';
+  }
+
+  @override
+  String timeline_no_tag_results(Object tag) {
+    return '找不到包含 #$tag 的日記。';
+  }
+
+  @override
   String get timeline_load_failed => '加載時發生錯誤';
 
   @override
@@ -99,4 +118,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get write_to_diary => '寫在我的日誌上！';
+
+  @override
+  String get update_diary => '儲存修改';
 }

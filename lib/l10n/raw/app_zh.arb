@@ -4,11 +4,14 @@
   "add_tags": "添加標籤",
   "added_n_tags": "已添加 {count} 個標籤",
   "app_name": "心靈小海灣",
+  "cancel": "取消",
   "close": "關閉",
+  "clear": "清除",
   "default_username": "無名氏",
   "detail": "詳情",
   "diary_delete": "刪除",
   "diary_edit": "編輯",
+  "edit_diary_title": "編輯日記",
   "error_detail": "錯誤詳情",
   "language": "語言",
   "notify_me": "提醒我寫日誌",
@@ -23,9 +26,12 @@
   "theme_light": "明亮",
   "theme_system": "跟隨系統",
   "timeline_empty": "這裡是你的心靈小灣～寫下一些話，只屬於你自己。",
+  "timeline_filtered_by_tag": "目前篩選標籤：#{tag}",
+  "timeline_no_tag_results": "找不到包含 #{tag} 的日記。",
   "timeline_load_failed": "加載時發生錯誤",
   "timeline_reach_end": "你已抵達記憶的岸邊",
   "write_hint": "在這裡寫下你的想法...",
   "write_title": "撰寫",
-  "write_to_diary": "寫在我的日誌上！"
+  "write_to_diary": "寫在我的日誌上！",
+  "update_diary": "儲存修改"
 }

@@ -74,7 +74,7 @@ class Diary {
       writtenAt: writtenAt,
       content: content,
       location: extract('Location') ?? '',
-      tags: extract('Tags')?.split(',').toSet() ?? {},
+      tags: extract('Tags')?.split(',').map((tag) => tag.trim()).where((tag) => tag.isNotEmpty).toSet() ?? {},
       mood: moodStr != null ? Mood.fromString(moodStr) : null,
       media: media,
       editedAt: editedAt,

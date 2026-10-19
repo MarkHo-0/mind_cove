@@ -86,4 +86,9 @@ class TagsEditingController extends ChangeNotifier {
     _tags.clear();
     notifyListeners();
   }
+
+  void replace(Set<String> tags) {
+    _tags = Set<String>.from(tags);
+    notifyListeners();
+  }
 }

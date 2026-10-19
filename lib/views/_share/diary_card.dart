@@ -1,17 +1,18 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:intl/intl.dart';
 import 'package:mind_cove/views/_share/mood_renderer.dart';
+import 'package:provider/provider.dart';
 
 import '../../diary/model.dart';
 import '../../l10n/generated/app_localizations.dart';
+import '../../providers/diary_index.dart';
+import '../write/write.dart';
 import 'horizontal_media_list.dart';
 
 class DiaryCard extends StatelessWidget {
   final Diary data;
-  final Function() onDelete;
-  final Function() onEdit;
 
-  const DiaryCard(this.data, {super.key, required this.onDelete, required this.onEdit});
+  const DiaryCard(this.data, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -38,8 +39,20 @@ class DiaryCard extends StatelessWidget {
               child: PopupMenuButton(
                 itemBuilder: (context) {
                   return [
-                    PopupMenuItem(onTap: onEdit, child: Text(AppLocalizations.of(context)!.diary_edit)),
-                    PopupMenuItem(onTap: onDelete, child: Text(AppLocalizations.of(context)!.diary_delete)),
+                    PopupMenuItem(
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => WriteView(editingDiary: data),
+                          ),
+                        );
+                      },
+                      child: Text(AppLocalizations.of(context)!.diary_edit),
+                    ),
+                    PopupMenuItem(
+                      onTap: () => context.read<DiaryIndexProvider>().deleteDiary(data),
+                      child: Text(AppLocalizations.of(context)!.diary_delete),
+                    ),
                   ];
                 },
                 child: Icon(Icons.more_vert),
@@ -66,12 +79,11 @@ class DiaryCard extends StatelessWidget {
                           (tag) => InkWell(
                             child: Text(
                               '#$tag',
-                              style: TextTheme.of(
-                                context,
-                              ).labelSmall?.copyWith(color: Theme.of(context).colorScheme.secondary),
+                              style: TextTheme.of(context).labelSmall
+                                  ?.copyWith(color: Theme.of(context).colorScheme.secondary),
                             ),
                             onTap: () {
-                              // TODO: Implement tag filtering
+                              context.read<DiaryIndexProvider>().setTagFilter(tag);
                             },
                           ),
                         )

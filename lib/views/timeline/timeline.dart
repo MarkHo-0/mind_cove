@@ -28,6 +28,8 @@ class _TimelineViewState extends State<TimelineView> with AutomaticKeepAliveClie
   Object? error;
   bool _hasRenderedDiaryItems = false;
   bool _isAddingDiary = false;
+  List<DiaryIndexEntry> _entriesToDisplay = const [];
+  String? _renderedTag;
 
   @override
   bool get wantKeepAlive => true;
@@ -66,7 +68,24 @@ class _TimelineViewState extends State<TimelineView> with AutomaticKeepAliveClie
           _animatedListKey.currentState!.removeItem(0, (context, animation) => const SizedBox.shrink());
         }
       }
-      await _fetchMoreItems();
+      final allEntries = context.read<DiaryIndexProvider>().diaryEntries;
+      final selectedTag = context.read<DiaryIndexProvider>().selectedTag;
+      if (selectedTag == null) {
+        _entriesToDisplay = allEntries;
+        await _fetchMoreItems();
+      } else {
+        final loadedDiaries = await Future.wait(allEntries.map((entry) => loadDiary(entry.id)));
+        final matchingDiaries = loadedDiaries.where((diary) => diary.tags.contains(selectedTag)).toList();
+        _entriesToDisplay = matchingDiaries
+            .map((diary) => DiaryIndexEntry.fromDate(diary.writtenAt))
+            .toList();
+        diaries.addAll(matchingDiaries);
+        allDataLoaded = true;
+        for (var i = 0; i < matchingDiaries.length; i++) {
+          _animatedListKey.currentState?.insertItem(i);
+        }
+      }
+      _renderedTag = selectedTag;
       _hasRenderedDiaryItems = true;
     } catch (e) {
       if (mounted) setState(() => error = e);
@@ -78,7 +97,24 @@ class _TimelineViewState extends State<TimelineView> with AutomaticKeepAliveClie
   void _handleNewestDiaryAdded() {
     if (!mounted || !_hasRenderedDiaryItems || isLoading || _isAddingDiary) return;
 
-    final diaryEntries = context.read<DiaryIndexProvider>().diaryEntries;
+    final diaryIndexProvider = context.read<DiaryIndexProvider>();
+    if (diaryIndexProvider.selectedTag != _renderedTag) {
+      _loadDiaryItems(Future.value(diaryIndexProvider.diaryEntries));
+      return;
+    }
+
+    for (var index = diaries.length - 1; index >= 0; index--) {
+      if (diaryIndexProvider.containsDiary(diaries[index].writtenAt)) continue;
+
+      final removedDiary = diaries.removeAt(index);
+      _animatedListKey.currentState?.removeItem(
+        index,
+        (context, animation) => _buildRemovedItem(removedDiary, animation),
+        duration: const Duration(milliseconds: 300),
+      );
+    }
+
+    final diaryEntries = diaryIndexProvider.diaryEntries;
     if (diaryEntries.isEmpty) return;
 
     final newestEntry = diaryEntries.first;
@@ -93,6 +129,8 @@ class _TimelineViewState extends State<TimelineView> with AutomaticKeepAliveClie
     try {
       final diary = await loadDiary(entry.id);
       if (!mounted) return;
+      final selectedTag = context.read<DiaryIndexProvider>().selectedTag;
+      if (selectedTag != null && !diary.tags.contains(selectedTag)) return;
 
       diaries.insert(0, diary);
       _animatedListKey.currentState?.insertItem(0, duration: const Duration(milliseconds: 500));
@@ -103,30 +141,10 @@ class _TimelineViewState extends State<TimelineView> with AutomaticKeepAliveClie
     }
   }
 
-  Future<void> _handleDeleteDiary(Diary diary) async {
-    final diaryIndexProvider = context.read<DiaryIndexProvider>();
-    try {
-      await diaryIndexProvider.deleteDiary(diary);
-      if (!mounted) return;
-
-      final index = diaries.indexOf(diary);
-      if (index == -1) return;
-
-      final removedDiary = diaries.removeAt(index);
-      _animatedListKey.currentState?.removeItem(
-        index,
-        (context, animation) => _buildRemovedItem(removedDiary, animation),
-        duration: const Duration(milliseconds: 300),
-      );
-    } catch (e) {
-      if (mounted) setState(() => error = e);
-    }
-  }
-
   Future<void> _fetchMoreItems() async {
     if (allDataLoaded) return;
 
-    final diaryEntries = context.read<DiaryIndexProvider>().diaryEntries;
+    final diaryEntries = _entriesToDisplay;
     final int startIndex = diaries.length;
     int endIndex = diaries.length + itemsPerFetch;
 
@@ -220,6 +238,10 @@ class _TimelineViewState extends State<TimelineView> with AutomaticKeepAliveClie
     if (diaryEntries.isEmpty && !isLoading) {
       return _buildEmptyWidget();
     }
+    final selectedTag = context.watch<DiaryIndexProvider>().selectedTag;
+    if (selectedTag != null && diaries.isEmpty && !isLoading) {
+      return _buildNoTagResults(selectedTag);
+    }
 
     // 3. 移除外層 Padding，邊距改由 _buildListView 裡的 SliverPadding 統一處理
     return _buildListView();
@@ -233,7 +255,9 @@ class _TimelineViewState extends State<TimelineView> with AutomaticKeepAliveClie
       opacity: animation,
       child: SlideTransition(
         position: animation.drive(Tween<Offset>(begin: const Offset(0, -0.2), end: Offset.zero)),
-        child: DiaryCard(diary, onDelete: () => _handleDeleteDiary(diary), onEdit: () {}),
+        child: DiaryCard(
+          diary,
+        ),
       ),
     );
   }
@@ -274,6 +298,29 @@ class _TimelineViewState extends State<TimelineView> with AutomaticKeepAliveClie
     );
   }
 
+  Widget _buildNoTagResults(String tag) {
+    return RefreshIndicator(
+      onRefresh: _handleRefresh,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: Center(
+                child: Text(
+                  AppLocalizations.of(context)!.timeline_no_tag_results(tag),
+                  style: const TextStyle(fontSize: 18, color: Colors.grey),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   Widget _buildListView() {
     return RefreshIndicator(
       onRefresh: _handleRefresh,
@@ -281,6 +328,27 @@ class _TimelineViewState extends State<TimelineView> with AutomaticKeepAliveClie
         controller: _scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
+          if (context.watch<DiaryIndexProvider>().selectedTag != null)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: pagePadding.copyWith(bottom: 0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        AppLocalizations.of(context)!.timeline_filtered_by_tag(
+                          context.watch<DiaryIndexProvider>().selectedTag!,
+                        ),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => context.read<DiaryIndexProvider>().clearTagFilter(),
+                      child: Text(AppLocalizations.of(context)!.clear),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           SliverPadding(
             padding: pagePadding,
             sliver: SliverAnimatedList(
@@ -316,7 +384,7 @@ class _TimelineViewState extends State<TimelineView> with AutomaticKeepAliveClie
       sizeFactor: animation,
       child: FadeTransition(
         opacity: animation,
-        child: DiaryCard(diary, onDelete: () {}, onEdit: () {}),
+        child: DiaryCard(diary),
       ),
     );
   }

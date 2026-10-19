@@ -5,8 +5,10 @@ import 'package:mind_cove/diary/model.dart';
 class DiaryIndexProvider extends ChangeNotifier {
   List<DiaryIndexEntry> _diaryEntries = const [];
   Future<List<DiaryIndexEntry>>? _loadFuture;
+  String? _selectedTag;
 
   List<DiaryIndexEntry> get diaryEntries => _diaryEntries;
+  String? get selectedTag => _selectedTag;
 
   Future<List<DiaryIndexEntry>> getDiaryEntries({bool forceRefresh = false}) {
     if (!forceRefresh && _loadFuture != null) return _loadFuture!;
@@ -52,6 +54,31 @@ class DiaryIndexProvider extends ChangeNotifier {
     await diary_service.deleteDiary(diary);
     removeDiary(diary.writtenAt);
   }
+
+  Future<void> updateDiary({
+    required Diary original,
+    required String content,
+    required Mood? mood,
+    required String location,
+    required Set<String> tags,
+  }) async {
+    await diary_service.updateDiary(
+      original: original,
+      content: content,
+      mood: mood,
+      location: location,
+      tags: tags,
+    );
+    notifyListeners();
+  }
+
+  void setTagFilter(String? tag) {
+    if (_selectedTag == tag) return;
+    _selectedTag = tag;
+    notifyListeners();
+  }
+
+  void clearTagFilter() => setTagFilter(null);
 
   void addDiary(DateTime writtenAt) {
     final entry = DiaryIndexEntry.fromDate(writtenAt);

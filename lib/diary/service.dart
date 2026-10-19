@@ -67,6 +67,28 @@ Future<String> saveDiary({
   return Future.value(fullPath.toString());
 }
 
+Future<void> updateDiary({
+  required Diary original,
+  required String content,
+  required Mood? mood,
+  required String location,
+  required Set<String> tags,
+}) async {
+  final baseDir = await getDiariesFolder();
+  final diaryDir = Directory(p.join(baseDir.path, diaryFolderNameFormat.format(original.writtenAt)));
+  final fullPath = p.join(diaryDir.path, diaryFileName);
+  final updated = Diary(
+    writtenAt: original.writtenAt,
+    editedAt: DateTime.now(),
+    content: content,
+    mood: mood,
+    location: location,
+    tags: tags,
+    media: original.media,
+  );
+  await File(fullPath).writeAsString(updated.toMarkdown());
+}
+
 Future<List<DiaryIndexEntry>> readDiaryIds() async {
   final baseDir = await getDiariesFolder();
   if (!await baseDir.exists()) return [];

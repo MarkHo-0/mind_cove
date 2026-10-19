@@ -122,11 +122,23 @@ abstract class AppLocalizations {
   /// **'Mind Cove'**
   String get app_name;
 
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
   /// No description provided for @close.
   ///
   /// In en, this message translates to:
   /// **'Close'**
   String get close;
+
+  /// No description provided for @clear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get clear;
 
   /// No description provided for @default_username.
   ///
@@ -151,6 +163,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Edit'**
   String get diary_edit;
+
+  /// No description provided for @edit_diary_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Diary'**
+  String get edit_diary_title;
 
   /// No description provided for @error_detail.
   ///
@@ -236,6 +254,18 @@ abstract class AppLocalizations {
   /// **'Here is your mind cove. Write down some words that belong only to you.'**
   String get timeline_empty;
 
+  /// No description provided for @timeline_filtered_by_tag.
+  ///
+  /// In en, this message translates to:
+  /// **'Filtered by #{tag}'**
+  String timeline_filtered_by_tag(Object tag);
+
+  /// No description provided for @timeline_no_tag_results.
+  ///
+  /// In en, this message translates to:
+  /// **'No diaries found with #{tag}.'**
+  String timeline_no_tag_results(Object tag);
+
   /// No description provided for @timeline_load_failed.
   ///
   /// In en, this message translates to:
@@ -265,6 +295,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Write on my diary!'**
   String get write_to_diary;
+
+  /// No description provided for @update_diary.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Changes'**
+  String get update_diary;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

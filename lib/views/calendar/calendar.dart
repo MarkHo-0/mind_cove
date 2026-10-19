@@ -112,7 +112,7 @@ class _CalendarViewState extends State<CalendarView> with AutomaticKeepAliveClie
   }
 
   Widget _buildSelectedDiaries() {
-    final diaryIndexProvider = context.read<DiaryIndexProvider>();
+    final diaryIndexProvider = context.watch<DiaryIndexProvider>();
     final selectedDiaries = _selectedDiaries.where((diary) {
       return diaryIndexProvider.containsDiary(diary.writtenAt);
     }).toList();
@@ -132,7 +132,7 @@ class _CalendarViewState extends State<CalendarView> with AutomaticKeepAliveClie
       itemCount: selectedDiaries.length,
       itemBuilder: (context, index) {
         final diary = selectedDiaries[index];
-        return DiaryCard(diary, onDelete: () {}, onEdit: () {});
+        return DiaryCard(diary);
       },
     );
   }

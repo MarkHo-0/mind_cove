@@ -13,7 +13,9 @@ import '../../providers/views.dart';
 import '../../providers/diary_index.dart';
 
 class WriteView extends StatefulWidget {
-  const WriteView({super.key});
+  final Diary? editingDiary;
+
+  const WriteView({super.key, this.editingDiary});
 
   @override
   State<WriteView> createState() => _WriteViewState();
@@ -25,10 +27,31 @@ class _WriteViewState extends State<WriteView> with AutomaticKeepAliveClientMixi
   final TagsEditingController tagsController = TagsEditingController();
   final MoodEditingController moodController = MoodEditingController();
   List<DiaryMedia> selectedMedia = [];
+  Diary? _loadedEditingDiary;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final editingDiary = widget.editingDiary;
+    if (editingDiary == null || identical(editingDiary, _loadedEditingDiary)) return;
+
+    _loadedEditingDiary = editingDiary;
+    contentController.text = editingDiary.content;
+    locationController.text = editingDiary.location;
+    tagsController.replace(editingDiary.tags);
+    if (editingDiary.mood == null) {
+      moodController.clear();
+    } else {
+      moodController.setEmotion(editingDiary.mood!.name);
+    }
+    selectedMedia = List.of(editingDiary.media);
+  }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final localizations = AppLocalizations.of(context)!;
+    final isEditing = widget.editingDiary != null;
     return Scaffold(
       body: SingleChildScrollView(
         child: Padding(
@@ -37,7 +60,7 @@ class _WriteViewState extends State<WriteView> with AutomaticKeepAliveClientMixi
             children: [
               const SizedBox(height: 20),
               Text(
-                AppLocalizations.of(context)!.write_title,
+                isEditing ? localizations.edit_diary_title : localizations.write_title,
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               TextField(
@@ -106,7 +129,21 @@ class _WriteViewState extends State<WriteView> with AutomaticKeepAliveClientMixi
                   minimumSize: Size(double.infinity, 50),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 ),
-                child: Text(AppLocalizations.of(context)!.write_to_diary),
+                child: Text(isEditing ? localizations.update_diary : localizations.write_to_diary),
+              ),
+              Visibility(
+                visible: isEditing,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 50.0),
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: Size(double.infinity, 50),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    ),
+                    child: Text(localizations.cancel),
+                  ),
+                ),
               ),
             ],
           ),
@@ -133,22 +170,42 @@ class _WriteViewState extends State<WriteView> with AutomaticKeepAliveClientMixi
 
     final writtenAt = DateTime.now();
     final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
     final viewProvider = context.read<ViewsProvider>();
     final diaryIndexProvider = context.read<DiaryIndexProvider>();
 
-    diaryIndexProvider
-        .saveDiary(
-          writtenAt: writtenAt,
-          content: contentController.text,
-          mood: moodController.value,
-          location: locationController.text,
-          tags: tagsController.tags,
-          mediaFiles: selectedMedia,
-        )
+    final editingDiary = widget.editingDiary;
+    final saveFuture = editingDiary == null
+        ? diaryIndexProvider.saveDiary(
+            writtenAt: writtenAt,
+            content: contentController.text,
+            mood: moodController.value,
+            location: locationController.text,
+            tags: tagsController.tags,
+            mediaFiles: selectedMedia,
+          )
+        : diaryIndexProvider
+              .updateDiary(
+                original: editingDiary,
+                content: contentController.text,
+                mood: moodController.value,
+                location: locationController.text,
+                tags: tagsController.tags,
+              )
+              .then((_) => '');
+
+    saveFuture
         .then((savedPath) {
+          if (!mounted) return;
           reset();
-          viewProvider.changeView(ViewType.timeline);
-          messenger.showSnackBar(SnackBar(content: Text(savedPath)));
+          if (editingDiary != null) {
+            navigator.pop();
+          } else {
+            viewProvider.changeView(ViewType.timeline);
+          }
+          if (savedPath.isNotEmpty) {
+            messenger.showSnackBar(SnackBar(content: Text(savedPath)));
+          }
         })
         .onError((err, stack) {
           messenger.showSnackBar(SnackBar(content: Text(err.toString())));
