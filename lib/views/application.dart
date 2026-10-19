@@ -8,22 +8,28 @@ class ApplicationContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        body: PageView(
-          controller: context.read<ViewsProvider>().pageController,
-          physics: NeverScrollableScrollPhysics(),
-          children: context.read<ViewsProvider>().getViews(),
-        ),
-        bottomNavigationBar: BottomNavigationBar(
-          useLegacyColorScheme: false,
-          showSelectedLabels: false,
-          showUnselectedLabels: false,
-          currentIndex: context.watch<ViewsProvider>().currentIndex,
-          onTap: (int index) {
-            context.read<ViewsProvider>().changeViewById(index);
-          },
-          items: context.read<ViewsProvider>().getNavigationItems(),
+    return Scaffold(
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: PageView(
+                controller: context.read<ViewsProvider>().pageController,
+                physics: NeverScrollableScrollPhysics(),
+                children: context.read<ViewsProvider>().getViews(),
+              ),
+            ),
+            BottomNavigationBar(
+              useLegacyColorScheme: false,
+              showSelectedLabels: false,
+              showUnselectedLabels: false,
+              currentIndex: context.watch<ViewsProvider>().currentIndex,
+              onTap: (int index) {
+                context.read<ViewsProvider>().changeViewById(index);
+              },
+              items: context.read<ViewsProvider>().getNavigationItems(),
+            ),
+          ],
         ),
       ),
     );
