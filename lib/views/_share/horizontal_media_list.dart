@@ -1,5 +1,5 @@
 import 'dart:ui';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:mind_cove/views/_share/full_screen_media_viewer.dart';
 
 import '../../diary/model.dart';

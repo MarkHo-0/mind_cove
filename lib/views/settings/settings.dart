@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:mind_cove/l10n/generated/app_localizations.dart';
 import 'package:mind_cove/views/_share/styles/padding.dart';
 import 'package:provider/provider.dart';

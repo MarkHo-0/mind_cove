@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:ui';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:mind_cove/views/application.dart' show ApplicationContainer;
 import 'l10n/generated/app_localizations.dart';
 import 'package:provider/provider.dart';

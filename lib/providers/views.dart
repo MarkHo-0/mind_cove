@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../views/calendar/calendar.dart' show CalendarView;
 import '../views/settings/settings.dart' show SettingsView;

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mind_cove/diary/model.dart';
 import 'package:mind_cove/diary/service.dart';
