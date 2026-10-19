@@ -16,6 +16,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get add_media => '添加媒體';
 
   @override
+  String get add => '添加';
+
+  @override
+  String get add_tag => '添加標籤';
+
+  @override
   String get add_tags => '添加標籤';
 
   @override
@@ -70,6 +76,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get language => '語言';
 
   @override
+  String get manage_tags => '管理標籤';
+
+  @override
+  String get no_tags_hint => '目前沒有標籤，點擊筆圖示添加標籤。';
+
+  @override
   String get notify_me => '提醒我寫日誌';
 
   @override
@@ -90,7 +102,23 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get select_tags => '選擇標籤';
+
+  @override
   String get start_writing => '開始撰寫';
+
+  @override
+  String tag_load_failed(Object error) {
+    return '加載標籤失敗：$error';
+  }
+
+  @override
+  String get tag_name => '標籤名稱';
+
+  @override
+  String tag_save_failed(Object error) {
+    return '儲存標籤失敗：$error';
+  }
 
   @override
   String get theme => '主題';

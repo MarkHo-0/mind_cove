@@ -16,6 +16,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get add_media => 'Add Media';
 
   @override
+  String get add => 'Add';
+
+  @override
+  String get add_tag => 'Add Tag';
+
+  @override
   String get add_tags => 'Add Tags';
 
   @override
@@ -70,6 +76,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get language => 'Language';
 
   @override
+  String get manage_tags => 'Manage Tags';
+
+  @override
+  String get no_tags_hint => 'No tags yet. Tap the pencil to add a tag.';
+
+  @override
   String get notify_me => 'Notify me to write';
 
   @override
@@ -90,7 +102,23 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get select_tags => 'Select Tags';
+
+  @override
   String get start_writing => 'Starting writing';
+
+  @override
+  String tag_load_failed(Object error) {
+    return 'Failed to load tags: $error';
+  }
+
+  @override
+  String get tag_name => 'Tag name';
+
+  @override
+  String tag_save_failed(Object error) {
+    return 'Failed to save tags: $error';
+  }
 
   @override
   String get theme => 'Theme';

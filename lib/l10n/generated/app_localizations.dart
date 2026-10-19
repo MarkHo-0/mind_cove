@@ -104,6 +104,18 @@ abstract class AppLocalizations {
   /// **'Add Media'**
   String get add_media;
 
+  /// No description provided for @add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get add;
+
+  /// No description provided for @add_tag.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Tag'**
+  String get add_tag;
+
   /// No description provided for @add_tags.
   ///
   /// In en, this message translates to:
@@ -188,6 +200,18 @@ abstract class AppLocalizations {
   /// **'Language'**
   String get language;
 
+  /// No description provided for @manage_tags.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Tags'**
+  String get manage_tags;
+
+  /// No description provided for @no_tags_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'No tags yet. Tap the pencil to add a tag.'**
+  String get no_tags_hint;
+
   /// No description provided for @notify_me.
   ///
   /// In en, this message translates to:
@@ -224,11 +248,35 @@ abstract class AppLocalizations {
   /// **'Selected {count} media'**
   String selected_n_media(Object count);
 
+  /// No description provided for @select_tags.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Tags'**
+  String get select_tags;
+
   /// No description provided for @start_writing.
   ///
   /// In en, this message translates to:
   /// **'Starting writing'**
   String get start_writing;
+
+  /// No description provided for @tag_load_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load tags: {error}'**
+  String tag_load_failed(Object error);
+
+  /// No description provided for @tag_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Tag name'**
+  String get tag_name;
+
+  /// No description provided for @tag_save_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save tags: {error}'**
+  String tag_save_failed(Object error);
 
   /// No description provided for @theme.
   ///
