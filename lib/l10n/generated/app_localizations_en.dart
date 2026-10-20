@@ -45,6 +45,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get default_username => 'Unknown User';
 
   @override
+  String get edit_username => 'Edit Name';
+
+  @override
   String get detail => 'Detail';
 
   @override
@@ -106,6 +109,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String selected_n_media(Object count) {
     return 'Selected $count media';
   }
+
+  @override
+  String get save => 'Save';
 
   @override
   String get select_tags => 'Select Tags';
@@ -172,6 +178,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get timeline_reach_end => 'You\'ve reached the shore of memery';
+
+  @override
+  String get username => 'Name';
 
   @override
   String get write_hint => 'Write your thoughts here...';

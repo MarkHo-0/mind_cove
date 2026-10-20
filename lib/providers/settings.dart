@@ -24,7 +24,9 @@ class AppSettings {
 
   static const notificationsEnabled = Setting<bool>(key: 'notificationsEnabled', defaultValue: false);
 
-  static const allSettings = <Setting<Object?>>[languageCode, brightness, notificationsEnabled];
+  static const username = Setting<String>(key: 'username', defaultValue: '');
+
+  static const allSettings = <Setting<Object?>>[languageCode, brightness, notificationsEnabled, username];
 }
 
 class SettingsProvider extends ChangeNotifier {

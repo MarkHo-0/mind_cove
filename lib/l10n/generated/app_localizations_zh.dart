@@ -45,6 +45,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get default_username => '無名氏';
 
   @override
+  String get edit_username => '修改名稱';
+
+  @override
   String get detail => '詳情';
 
   @override
@@ -106,6 +109,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String selected_n_media(Object count) {
     return '已選 $count 份媒體檔案';
   }
+
+  @override
+  String get save => '儲存';
 
   @override
   String get select_tags => '選擇標籤';
@@ -172,6 +178,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get timeline_reach_end => '你已抵達記憶的岸邊';
+
+  @override
+  String get username => '名稱';
 
   @override
   String get write_hint => '在這裡寫下你的想法...';

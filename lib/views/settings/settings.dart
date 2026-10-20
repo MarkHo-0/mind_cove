@@ -4,6 +4,7 @@ import 'package:mind_cove/views/_share/styles/padding.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/settings.dart';
+import 'edit_username_popup.dart';
 
 class SettingsView extends StatefulWidget {
   const SettingsView({super.key});
@@ -13,11 +14,28 @@ class SettingsView extends StatefulWidget {
 }
 
 class _SettingsViewState extends State<SettingsView> with AutomaticKeepAliveClientMixin<SettingsView> {
+  Future<void> _editUsername(SettingsProvider settings) async {
+    final localizations = AppLocalizations.of(context)!;
+    final currentUsername = settings.get(AppSettings.username);
+    final username = await showDialog<String>(
+      context: context,
+      builder: (context) => EditUsernamePopup(
+        initialUsername: currentUsername.isEmpty ? localizations.default_username : currentUsername,
+      ),
+    );
+
+    final normalizedUsername = username?.trim();
+    if (normalizedUsername == null || normalizedUsername.isEmpty) return;
+    settings.set(AppSettings.username, normalizedUsername);
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
 
     final settings = context.watch<SettingsProvider>();
+    final localizations = AppLocalizations.of(context)!;
+    final username = settings.get(AppSettings.username);
 
     return Padding(
       padding: pagePadding,
@@ -26,16 +44,23 @@ class _SettingsViewState extends State<SettingsView> with AutomaticKeepAliveClie
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 20.0),
-            child: Text(
-              AppLocalizations.of(context)!.default_username,
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            child: InkWell(
+              onTap: () => _editUsername(settings),
+              borderRadius: BorderRadius.circular(4),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                child: Text(
+                  username.isEmpty ? localizations.default_username : username,
+                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+              ),
             ),
           ),
 
           ListTile(
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.book),
-            title: Text(AppLocalizations.of(context)!.language),
+            title: Text(localizations.language),
             trailing: DropdownMenu(
               dropdownMenuEntries: AppLocalizations.supportedLocales.map((locale) {
                 return DropdownMenuEntry(value: locale.languageCode, label: locale.toString());
@@ -52,12 +77,12 @@ class _SettingsViewState extends State<SettingsView> with AutomaticKeepAliveClie
           ListTile(
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.light_mode),
-            title: Text(AppLocalizations.of(context)!.theme),
+            title: Text(localizations.theme),
             trailing: DropdownMenu(
               dropdownMenuEntries: [
-                DropdownMenuEntry(value: null, label: AppLocalizations.of(context)!.theme_system),
-                DropdownMenuEntry(value: Brightness.light, label: AppLocalizations.of(context)!.theme_light),
-                DropdownMenuEntry(value: Brightness.dark, label: AppLocalizations.of(context)!.theme_black),
+                DropdownMenuEntry(value: null, label: localizations.theme_system),
+                DropdownMenuEntry(value: Brightness.light, label: localizations.theme_light),
+                DropdownMenuEntry(value: Brightness.dark, label: localizations.theme_black),
               ],
               onSelected: (value) => settings.set(AppSettings.brightness, value),
               initialSelection: settings.get(AppSettings.brightness),
@@ -71,7 +96,7 @@ class _SettingsViewState extends State<SettingsView> with AutomaticKeepAliveClie
           ListTile(
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.notifications),
-            title: Text(AppLocalizations.of(context)!.notify_me),
+            title: Text(localizations.notify_me),
             trailing: Switch(
               value: settings.get(AppSettings.notificationsEnabled),
               onChanged: (value) => settings.set(AppSettings.notificationsEnabled, value),

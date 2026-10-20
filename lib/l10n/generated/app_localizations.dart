@@ -158,6 +158,12 @@ abstract class AppLocalizations {
   /// **'Unknown User'**
   String get default_username;
 
+  /// No description provided for @edit_username.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Name'**
+  String get edit_username;
+
   /// No description provided for @detail.
   ///
   /// In en, this message translates to:
@@ -259,6 +265,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Selected {count} media'**
   String selected_n_media(Object count);
+
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
 
   /// No description provided for @select_tags.
   ///
@@ -367,6 +379,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You\'ve reached the shore of memery'**
   String get timeline_reach_end;
+
+  /// No description provided for @username.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get username;
 
   /// No description provided for @write_hint.
   ///
