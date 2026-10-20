@@ -22,10 +22,8 @@ class ApplicationContainer extends StatelessWidget {
               children: views.getViews(),
             );
 
-            if (isLandscape) {
-              return Row(
-                children: [
-                  NavigationRail(
+            final navigation = isLandscape
+                ? NavigationRail(
                     selectedIndex: context.watch<ViewsProvider>().currentIndex,
                     onDestinationSelected: views.changeViewById,
                     backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
@@ -39,24 +37,28 @@ class ApplicationContainer extends StatelessWidget {
                           ),
                         )
                         .toList(),
-                  ),
-                  Expanded(child: pageView),
-                ],
-              );
-            }
+                  )
+                : BottomNavigationBar(
+                    type: BottomNavigationBarType.fixed,
+                    useLegacyColorScheme: false,
+                    backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
+                    showSelectedLabels: false,
+                    showUnselectedLabels: false,
+                    currentIndex: context.watch<ViewsProvider>().currentIndex,
+                    onTap: views.changeViewById,
+                    items: navigationItems,
+                  );
 
-            return Column(
+            return Row(
               children: [
-                Expanded(child: pageView),
-                BottomNavigationBar(
-                  type: BottomNavigationBarType.fixed,
-                  useLegacyColorScheme: false,
-                  backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
-                  showSelectedLabels: false,
-                  showUnselectedLabels: false,
-                  currentIndex: context.watch<ViewsProvider>().currentIndex,
-                  onTap: views.changeViewById,
-                  items: navigationItems,
+                if (isLandscape) navigation,
+                Expanded(
+                  child: Column(
+                    children: [
+                      Expanded(child: pageView),
+                      if (!isLandscape) navigation,
+                    ],
+                  ),
                 ),
               ],
             );
