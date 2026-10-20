@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 
 import '../../providers/views.dart';
 import '../../providers/diary_index.dart';
+import 'timeline_filter.dart';
 
 class TimelineView extends StatefulWidget {
   const TimelineView({super.key});
@@ -31,6 +32,7 @@ class _TimelineViewState extends State<TimelineView> with AutomaticKeepAliveClie
   bool _isAddingDiary = false;
   List<DiaryIndexEntry> _entriesToDisplay = const [];
   String? _renderedTag;
+  String? _renderedLocation;
 
   @override
   bool get wantKeepAlive => true;
@@ -72,15 +74,20 @@ class _TimelineViewState extends State<TimelineView> with AutomaticKeepAliveClie
       }
       final allEntries = context.read<DiaryIndexProvider>().diaryEntries;
       final selectedTag = context.read<DiaryIndexProvider>().selectedTag;
-      if (selectedTag == null) {
+      final selectedLocation = context.read<DiaryIndexProvider>().selectedLocation;
+      if (selectedTag == null && selectedLocation == null) {
         _entriesToDisplay = allEntries;
         await _fetchMoreItems();
       } else {
         final loadedDiaries = await Future.wait(allEntries.map((entry) => loadDiary(entry.id)));
-        final matchingDiaries = loadedDiaries.where((diary) => diary.tags.contains(selectedTag)).toList();
-        _entriesToDisplay = matchingDiaries
-            .map((diary) => DiaryIndexEntry.fromDate(diary.writtenAt))
+        final matchingDiaries = loadedDiaries
+            .where(
+              (diary) =>
+                  (selectedTag == null || diary.tags.contains(selectedTag)) &&
+                  (selectedLocation == null || diary.location == selectedLocation),
+            )
             .toList();
+        _entriesToDisplay = matchingDiaries.map((diary) => DiaryIndexEntry.fromDate(diary.writtenAt)).toList();
         diaries.addAll(matchingDiaries);
         allDataLoaded = true;
         for (var i = 0; i < matchingDiaries.length; i++) {
@@ -88,6 +95,7 @@ class _TimelineViewState extends State<TimelineView> with AutomaticKeepAliveClie
         }
       }
       _renderedTag = selectedTag;
+      _renderedLocation = selectedLocation;
       _hasRenderedDiaryItems = true;
     } catch (e) {
       if (mounted) setState(() => error = e);
@@ -100,7 +108,7 @@ class _TimelineViewState extends State<TimelineView> with AutomaticKeepAliveClie
     if (!mounted || !_hasRenderedDiaryItems || isLoading || _isAddingDiary) return;
 
     final diaryIndexProvider = context.read<DiaryIndexProvider>();
-    if (diaryIndexProvider.selectedTag != _renderedTag) {
+    if (diaryIndexProvider.selectedTag != _renderedTag || diaryIndexProvider.selectedLocation != _renderedLocation) {
       _loadDiaryItems(Future.value(diaryIndexProvider.diaryEntries));
       return;
     }
@@ -132,7 +140,9 @@ class _TimelineViewState extends State<TimelineView> with AutomaticKeepAliveClie
       final diary = await loadDiary(entry.id);
       if (!mounted) return;
       final selectedTag = context.read<DiaryIndexProvider>().selectedTag;
+      final selectedLocation = context.read<DiaryIndexProvider>().selectedLocation;
       if (selectedTag != null && !diary.tags.contains(selectedTag)) return;
+      if (selectedLocation != null && diary.location != selectedLocation) return;
 
       diaries.insert(0, diary);
       _animatedListKey.currentState?.insertItem(0, duration: const Duration(milliseconds: 500));
@@ -233,20 +243,33 @@ class _TimelineViewState extends State<TimelineView> with AutomaticKeepAliveClie
 
   Widget _buildBody() {
     final diaryEntries = context.watch<DiaryIndexProvider>().diaryEntries;
-    if (isLoading && diaries.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (diaryEntries.isEmpty && !isLoading) {
-      return _buildEmptyWidget();
-    }
-    final selectedTag = context.watch<DiaryIndexProvider>().selectedTag;
-    if (selectedTag != null && diaries.isEmpty && !isLoading) {
-      return _buildNoTagResults(selectedTag);
-    }
-
-    // 3. 移除外層 Padding，邊距改由 _buildListView 裡的 SliverPadding 統一處理
-    return _buildListView();
+    return Padding(
+      padding: pagePadding,
+      child: Column(
+        children: [
+          const TimelineFilter(),
+          Expanded(
+            child: Builder(
+              builder: (context) {
+                if (isLoading && diaries.isEmpty) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (diaryEntries.isEmpty && !isLoading) {
+                  return _buildEmptyWidget();
+                }
+                final provider = context.watch<DiaryIndexProvider>();
+                if ((provider.selectedTag != null || provider.selectedLocation != null) &&
+                    diaries.isEmpty &&
+                    !isLoading) {
+                  return _buildNoFilterResults();
+                }
+                return _buildListView();
+              },
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildAnimatedItem(BuildContext context, int index, Animation<double> animation) {
@@ -257,9 +280,7 @@ class _TimelineViewState extends State<TimelineView> with AutomaticKeepAliveClie
       opacity: animation,
       child: SlideTransition(
         position: animation.drive(Tween<Offset>(begin: const Offset(0, -0.2), end: Offset.zero)),
-        child: DiaryCard(
-          diary,
-        ),
+        child: DiaryCard(diary),
       ),
     );
   }
@@ -300,7 +321,7 @@ class _TimelineViewState extends State<TimelineView> with AutomaticKeepAliveClie
     );
   }
 
-  Widget _buildNoTagResults(String tag) {
+  Widget _buildNoFilterResults() {
     return RefreshIndicator(
       onRefresh: _handleRefresh,
       child: LayoutBuilder(
@@ -311,7 +332,7 @@ class _TimelineViewState extends State<TimelineView> with AutomaticKeepAliveClie
               constraints: BoxConstraints(minHeight: constraints.maxHeight),
               child: Center(
                 child: Text(
-                  AppLocalizations.of(context)!.timeline_no_tag_results(tag),
+                  AppLocalizations.of(context)!.timeline_no_filter_results,
                   style: const TextStyle(fontSize: 18, color: Colors.grey),
                   textAlign: TextAlign.center,
                 ),
@@ -330,29 +351,8 @@ class _TimelineViewState extends State<TimelineView> with AutomaticKeepAliveClie
         controller: _scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
-          if (context.watch<DiaryIndexProvider>().selectedTag != null)
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: pagePadding.copyWith(bottom: 0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        AppLocalizations.of(context)!.timeline_filtered_by_tag(
-                          context.watch<DiaryIndexProvider>().selectedTag!,
-                        ),
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () => context.read<DiaryIndexProvider>().clearTagFilter(),
-                      child: Text(AppLocalizations.of(context)!.clear),
-                    ),
-                  ],
-                ),
-              ),
-            ),
           SliverPadding(
-            padding: pagePadding,
+            padding: EdgeInsets.symmetric(vertical: 10),
             sliver: SliverAnimatedList(
               key: _animatedListKey,
               initialItemCount: diaries.length,
@@ -384,10 +384,7 @@ class _TimelineViewState extends State<TimelineView> with AutomaticKeepAliveClie
   Widget _buildRemovedItem(Diary diary, Animation<double> animation) {
     return SizeTransition(
       sizeFactor: animation,
-      child: FadeTransition(
-        opacity: animation,
-        child: DiaryCard(diary),
-      ),
+      child: FadeTransition(opacity: animation, child: DiaryCard(diary)),
     );
   }
 }

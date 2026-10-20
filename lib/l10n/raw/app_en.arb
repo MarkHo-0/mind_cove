@@ -45,6 +45,8 @@
   "timeline_empty": "Here is your mind cove. Write down some words that belong only to you.",
   "timeline_filtered_by_tag": "Filtered by #{tag}",
   "timeline_no_tag_results": "No diaries found with #{tag}.",
+  "timeline_no_filter_results": "No diaries match the selected filters.",
+  "timeline_filter_load_failed": "Failed to load filters: {error}",
   "timeline_load_failed": "An error occurred while loading",
   "timeline_reach_end": "You've reached the shore of memery",
   "username": "Name",

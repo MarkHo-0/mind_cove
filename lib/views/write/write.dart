@@ -58,10 +58,12 @@ class _WriteViewState extends State<WriteView> with AutomaticKeepAliveClientMixi
           padding: pagePadding,
           child: Column(
             children: [
-              const SizedBox(height: 20),
-              Text(
-                isEditing ? localizations.edit_diary_title : localizations.write_title,
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 15.0),
+                child: Text(
+                  isEditing ? localizations.edit_diary_title : localizations.write_title,
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
               ),
               TextField(
                 minLines: 5,

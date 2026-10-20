@@ -11,6 +11,7 @@ import 'package:provider/provider.dart';
 import 'providers/settings.dart';
 import 'providers/diary_index.dart';
 import 'providers/views.dart';
+import 'theme.dart';
 
 void main() async {
   runApp(
@@ -41,7 +42,7 @@ class _MainAppState extends State<MainApp> {
 
     return MaterialApp(
       title: 'Mind Cove',
-      theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.blue, brightness: brightness),
+      theme: buildAppTheme(brightness),
       home: ApplicationContainer(),
       scrollBehavior: scrollBehaviorFixed,
       locale: locale,

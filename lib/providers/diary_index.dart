@@ -6,9 +6,11 @@ class DiaryIndexProvider extends ChangeNotifier {
   List<DiaryIndexEntry> _diaryEntries = const [];
   Future<List<DiaryIndexEntry>>? _loadFuture;
   String? _selectedTag;
+  String? _selectedLocation;
 
   List<DiaryIndexEntry> get diaryEntries => _diaryEntries;
   String? get selectedTag => _selectedTag;
+  String? get selectedLocation => _selectedLocation;
 
   Future<List<DiaryIndexEntry>> getDiaryEntries({bool forceRefresh = false}) {
     if (!forceRefresh && _loadFuture != null) return _loadFuture!;
@@ -62,13 +64,7 @@ class DiaryIndexProvider extends ChangeNotifier {
     required String location,
     required Set<String> tags,
   }) async {
-    await diary_service.updateDiary(
-      original: original,
-      content: content,
-      mood: mood,
-      location: location,
-      tags: tags,
-    );
+    await diary_service.updateDiary(original: original, content: content, mood: mood, location: location, tags: tags);
     notifyListeners();
   }
 
@@ -78,7 +74,15 @@ class DiaryIndexProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setLocationFilter(String? location) {
+    if (_selectedLocation == location) return;
+    _selectedLocation = location;
+    notifyListeners();
+  }
+
   void clearTagFilter() => setTagFilter(null);
+
+  void clearLocationFilter() => setLocationFilter(null);
 
   void addDiary(DateTime writtenAt) {
     final entry = DiaryIndexEntry.fromDate(writtenAt);

@@ -174,6 +174,14 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get timeline_no_filter_results => '找不到符合篩選條件的日記。';
+
+  @override
+  String timeline_filter_load_failed(Object error) {
+    return '加載篩選選項失敗：$error';
+  }
+
+  @override
   String get timeline_load_failed => '加載時發生錯誤';
 
   @override

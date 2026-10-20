@@ -368,6 +368,18 @@ abstract class AppLocalizations {
   /// **'No diaries found with #{tag}.'**
   String timeline_no_tag_results(Object tag);
 
+  /// No description provided for @timeline_no_filter_results.
+  ///
+  /// In en, this message translates to:
+  /// **'No diaries match the selected filters.'**
+  String get timeline_no_filter_results;
+
+  /// No description provided for @timeline_filter_load_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load filters: {error}'**
+  String timeline_filter_load_failed(Object error);
+
   /// No description provided for @timeline_load_failed.
   ///
   /// In en, this message translates to:

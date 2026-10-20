@@ -174,6 +174,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get timeline_no_filter_results => 'No diaries match the selected filters.';
+
+  @override
+  String timeline_filter_load_failed(Object error) {
+    return 'Failed to load filters: $error';
+  }
+
+  @override
   String get timeline_load_failed => 'An error occurred while loading';
 
   @override

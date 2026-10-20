@@ -41,11 +41,8 @@ class DiaryCard extends StatelessWidget {
                   return [
                     PopupMenuItem(
                       onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute<void>(
-                            builder: (_) => WriteView(editingDiary: data),
-                          ),
-                        );
+                        Navigator.of(context)
+                            .push(MaterialPageRoute<void>(builder: (_) => WriteView(editingDiary: data)));
                       },
                       child: Text(AppLocalizations.of(context)!.diary_edit),
                     ),
@@ -67,7 +64,10 @@ class DiaryCard extends StatelessWidget {
                 ),
                 Visibility(
                   visible: data.location.isNotEmpty,
-                  child: Text(data.location, style: TextTheme.of(context).labelMedium?.copyWith(color: Colors.grey)),
+                  child: InkWell(
+                    onTap: () => context.read<DiaryIndexProvider>().setLocationFilter(data.location),
+                    child: Text(data.location, style: TextTheme.of(context).labelMedium?.copyWith(color: Colors.grey)),
+                  ),
                 ),
                 Visibility(
                   visible: data.tags.isNotEmpty,
