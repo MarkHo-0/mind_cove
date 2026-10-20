@@ -14,28 +14,15 @@ class SettingsView extends StatefulWidget {
 }
 
 class _SettingsViewState extends State<SettingsView> with AutomaticKeepAliveClientMixin<SettingsView> {
-  Future<void> _editUsername(SettingsProvider settings) async {
-    final localizations = AppLocalizations.of(context)!;
-    final currentUsername = settings.get(AppSettings.username);
-    final username = await showDialog<String>(
-      context: context,
-      builder: (context) => EditUsernamePopup(
-        initialUsername: currentUsername.isEmpty ? localizations.default_username : currentUsername,
-      ),
-    );
-
-    final normalizedUsername = username?.trim();
-    if (normalizedUsername == null || normalizedUsername.isEmpty) return;
-    settings.set(AppSettings.username, normalizedUsername);
-  }
-
   @override
   Widget build(BuildContext context) {
     super.build(context);
 
     final settings = context.watch<SettingsProvider>();
     final localizations = AppLocalizations.of(context)!;
-    final username = settings.get(AppSettings.username);
+    final username = settings.get(AppSettings.username).isEmpty
+        ? localizations.default_username
+        : settings.get(AppSettings.username);
 
     return Padding(
       padding: pagePadding,
@@ -45,14 +32,17 @@ class _SettingsViewState extends State<SettingsView> with AutomaticKeepAliveClie
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 20.0),
             child: InkWell(
-              onTap: () => _editUsername(settings),
+              onTap: () => showDialog<String>(
+                context: context,
+                builder: (context) => EditUsernamePopup(
+                  currentUsername: username,
+                  onSubmit: (newUsername) => settings.set(AppSettings.username, newUsername),
+                ),
+              ),
               borderRadius: BorderRadius.circular(4),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                child: Text(
-                  username.isEmpty ? localizations.default_username : username,
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
+                child: Text(username, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
               ),
             ),
           ),
