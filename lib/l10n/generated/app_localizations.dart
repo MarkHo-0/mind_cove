@@ -206,6 +206,18 @@ abstract class AppLocalizations {
   /// **'Manage Tags'**
   String get manage_tags;
 
+  /// No description provided for @manage_locations.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Locations'**
+  String get manage_locations;
+
+  /// No description provided for @no_locations_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'No locations yet. Tap the edit icon to add one.'**
+  String get no_locations_hint;
+
   /// No description provided for @no_tags_hint.
   ///
   /// In en, this message translates to:
@@ -254,6 +266,12 @@ abstract class AppLocalizations {
   /// **'Select Tags'**
   String get select_tags;
 
+  /// No description provided for @select_location.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Location'**
+  String get select_location;
+
   /// No description provided for @start_writing.
   ///
   /// In en, this message translates to:
@@ -277,6 +295,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to save tags: {error}'**
   String tag_save_failed(Object error);
+
+  /// No description provided for @location_load_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load locations: {error}'**
+  String location_load_failed(Object error);
+
+  /// No description provided for @location_save_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save locations: {error}'**
+  String location_save_failed(Object error);
+
+  /// No description provided for @location_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Location name'**
+  String get location_name;
 
   /// No description provided for @theme.
   ///

@@ -79,6 +79,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get manage_tags => '管理標籤';
 
   @override
+  String get manage_locations => '管理地區';
+
+  @override
+  String get no_locations_hint => '目前沒有地區，點擊右上角編輯圖示添加地區。';
+
+  @override
   String get no_tags_hint => '目前沒有標籤，點擊筆圖示添加標籤。';
 
   @override
@@ -105,6 +111,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get select_tags => '選擇標籤';
 
   @override
+  String get select_location => '選擇地區';
+
+  @override
   String get start_writing => '開始撰寫';
 
   @override
@@ -119,6 +128,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String tag_save_failed(Object error) {
     return '儲存標籤失敗：$error';
   }
+
+  @override
+  String location_load_failed(Object error) {
+    return '加載地區失敗：$error';
+  }
+
+  @override
+  String location_save_failed(Object error) {
+    return '儲存地區失敗：$error';
+  }
+
+  @override
+  String get location_name => '地區名稱';
 
   @override
   String get theme => '主題';

@@ -79,6 +79,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get manage_tags => 'Manage Tags';
 
   @override
+  String get manage_locations => 'Manage Locations';
+
+  @override
+  String get no_locations_hint => 'No locations yet. Tap the edit icon to add one.';
+
+  @override
   String get no_tags_hint => 'No tags yet. Tap the pencil to add a tag.';
 
   @override
@@ -105,6 +111,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get select_tags => 'Select Tags';
 
   @override
+  String get select_location => 'Select Location';
+
+  @override
   String get start_writing => 'Starting writing';
 
   @override
@@ -119,6 +128,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String tag_save_failed(Object error) {
     return 'Failed to save tags: $error';
   }
+
+  @override
+  String location_load_failed(Object error) {
+    return 'Failed to load locations: $error';
+  }
+
+  @override
+  String location_save_failed(Object error) {
+    return 'Failed to save locations: $error';
+  }
+
+  @override
+  String get location_name => 'Location name';
 
   @override
   String get theme => 'Theme';

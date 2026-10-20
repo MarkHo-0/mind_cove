@@ -1,11 +1,10 @@
-import 'dart:io';
-
 import 'package:material_ui/material_ui.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 
 import '../../l10n/generated/app_localizations.dart';
-import '../../constants.dart' show savingFolderName, tagsFileName;
+import '../../constants.dart' show tagsFileName;
+import '../../services/maker_storage.dart';
+
+const _tagsStorage = MakerStorage(tagsFileName);
 
 Future<List<String>?> showTagMaker(BuildContext parentContext, TagsEditingController inputController) async {
   return showModalBottomSheet<List<String>>(
@@ -36,21 +35,10 @@ class _TagMakerSheetState extends State<_TagMakerSheet> {
     _loadTags();
   }
 
-  Future<File> _tagsFile() async {
-    final applicationDirectory = await getApplicationDocumentsDirectory();
-    final tagsDirectory = Directory(p.join(applicationDirectory.path, savingFolderName));
-    await tagsDirectory.create(recursive: true);
-    return File(p.join(tagsDirectory.path, tagsFileName));
-  }
-
   Future<void> _loadTags() async {
     try {
-      final file = await _tagsFile();
-      if (await file.exists()) {
-        final savedTags = (await file.readAsLines()).map((tag) => tag.trim()).where((tag) => tag.isNotEmpty);
-        _tags = savedTags.toSet().toList();
-      }
-    } on IOException catch (error) {
+      _tags = await _tagsStorage.load();
+    } on Exception catch (error) {
       _loadError = 'Failed to load tags: $error';
     }
     if (mounted) {
@@ -102,16 +90,18 @@ class _TagMakerSheetState extends State<_TagMakerSheet> {
 
   Future<void> _saveEditing() async {
     try {
-      final file = await _tagsFile();
-      await file.writeAsString(_editingTags.isEmpty ? '' : '${_editingTags.join('\n')}\n');
+      final deletedTags = _tags.toSet().difference(_editingTags.toSet());
+      await _tagsStorage.save(_editingTags);
       if (mounted) {
         setState(() {
           _tags = List.of(_editingTags);
           _editingTags = [];
           _isEditing = false;
         });
+        final selectedTags = Set<String>.from(widget.inputController.tags)..removeAll(deletedTags);
+        widget.inputController.replace(selectedTags);
       }
-    } on IOException catch (error) {
+    } on Exception catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.tag_save_failed(error))));
