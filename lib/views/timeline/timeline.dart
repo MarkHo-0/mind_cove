@@ -20,6 +20,7 @@ class _TimelineViewState extends State<TimelineView> with AutomaticKeepAliveClie
   // 1. 修正 Key 的型態為 SliverAnimatedListState
   final GlobalKey<SliverAnimatedListState> _animatedListKey = GlobalKey<SliverAnimatedListState>();
   final ScrollController _scrollController = ScrollController();
+  late final DiaryIndexProvider _diaryIndexProvider;
 
   final List<Diary> diaries = [];
   bool isLoading = true;
@@ -37,14 +38,15 @@ class _TimelineViewState extends State<TimelineView> with AutomaticKeepAliveClie
   @override
   void initState() {
     super.initState();
-    context.read<DiaryIndexProvider>().addListener(_handleNewestDiaryAdded);
-    _loadDiaryItems(context.read<DiaryIndexProvider>().getDiaryEntries());
+    _diaryIndexProvider = context.read<DiaryIndexProvider>();
+    _diaryIndexProvider.addListener(_handleNewestDiaryAdded);
+    _loadDiaryItems(_diaryIndexProvider.getDiaryEntries());
     _scrollController.addListener(onScrollTimeLine);
   }
 
   @override
   void dispose() {
-    context.read<DiaryIndexProvider>().removeListener(_handleNewestDiaryAdded);
+    _diaryIndexProvider.removeListener(_handleNewestDiaryAdded);
     _scrollController.removeListener(onScrollTimeLine);
     _scrollController.dispose();
     super.dispose();

@@ -8,28 +8,59 @@ class ApplicationContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final views = context.read<ViewsProvider>();
+
     return Scaffold(
       body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: PageView(
-                controller: context.read<ViewsProvider>().pageController,
-                physics: NeverScrollableScrollPhysics(),
-                children: context.read<ViewsProvider>().getViews(),
-              ),
-            ),
-            BottomNavigationBar(
-              useLegacyColorScheme: false,
-              showSelectedLabels: false,
-              showUnselectedLabels: false,
-              currentIndex: context.watch<ViewsProvider>().currentIndex,
-              onTap: (int index) {
-                context.read<ViewsProvider>().changeViewById(index);
-              },
-              items: context.read<ViewsProvider>().getNavigationItems(),
-            ),
-          ],
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isLandscape = constraints.maxWidth > constraints.maxHeight;
+            final navigationItems = views.getNavigationItems();
+            final pageView = PageView(
+              controller: views.pageController,
+              physics: const NeverScrollableScrollPhysics(),
+              children: views.getViews(),
+            );
+
+            if (isLandscape) {
+              return Row(
+                children: [
+                  NavigationRail(
+                    selectedIndex: context.watch<ViewsProvider>().currentIndex,
+                    onDestinationSelected: views.changeViewById,
+                    backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
+                    labelType: NavigationRailLabelType.none,
+                    destinations: navigationItems
+                        .map(
+                          (item) => NavigationRailDestination(
+                            icon: item.icon,
+                            selectedIcon: item.activeIcon,
+                            label: Text(item.label ?? ''),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                  Expanded(child: pageView),
+                ],
+              );
+            }
+
+            return Column(
+              children: [
+                Expanded(child: pageView),
+                BottomNavigationBar(
+                  type: BottomNavigationBarType.fixed,
+                  useLegacyColorScheme: false,
+                  backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
+                  showSelectedLabels: false,
+                  showUnselectedLabels: false,
+                  currentIndex: context.watch<ViewsProvider>().currentIndex,
+                  onTap: views.changeViewById,
+                  items: navigationItems,
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
