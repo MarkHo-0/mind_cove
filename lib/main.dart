@@ -8,13 +8,20 @@ import 'l10n/generated/app_localizations.dart';
 
 import 'package:provider/provider.dart';
 
+import 'constants.dart';
 import 'providers/settings.dart';
 import 'providers/diary_index.dart';
 import 'providers/views.dart';
 import 'services/app_restart.dart';
+import 'services/daily_reminder.dart';
 import 'theme.dart';
 
-void main() async {
+Future<void> main(List<String> args) async {
+  if (Platform.isWindows && args.contains('--daily-reminder')) {
+    await DailyReminderService.instance.showNow(title: dailyReminderTitle, body: dailyReminderBody);
+    return;
+  }
+
   runApp(
     AppRestart(
       child: MultiProvider(

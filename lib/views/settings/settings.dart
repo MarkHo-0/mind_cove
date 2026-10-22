@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../../providers/settings.dart';
 import 'data_transfer_settings.dart';
+import 'daily_reminder_settings.dart';
 import 'edit_username_popup.dart';
 
 class SettingsView extends StatefulWidget {
@@ -84,15 +85,7 @@ class _SettingsViewState extends State<SettingsView> with AutomaticKeepAliveClie
               ),
             ),
           ),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: const Icon(Icons.notifications),
-            title: Text(localizations.notify_me),
-            trailing: Switch(
-              value: settings.get(AppSettings.notificationsEnabled),
-              onChanged: (value) => settings.set(AppSettings.notificationsEnabled, value),
-            ),
-          ),
+          const DailyReminderSettings(),
           Divider(height: 40, thickness: 1),
           const DataTransferSettings(),
         ],

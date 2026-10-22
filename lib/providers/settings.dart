@@ -24,9 +24,20 @@ class AppSettings {
 
   static const notificationsEnabled = Setting<bool>(key: 'notificationsEnabled', defaultValue: false);
 
+  static const notificationsPermissionDenied = Setting<bool>(key: 'notificationsPermissionDenied', defaultValue: false);
+
+  static const notificationTimeMinutes = Setting<int>(key: 'notificationTimeMinutes', defaultValue: 20 * 60);
+
   static const username = Setting<String>(key: 'username', defaultValue: '');
 
-  static const allSettings = <Setting<Object?>>[languageCode, brightness, notificationsEnabled, username];
+  static const allSettings = <Setting<Object?>>[
+    languageCode,
+    brightness,
+    notificationsEnabled,
+    notificationsPermissionDenied,
+    notificationTimeMinutes,
+    username,
+  ];
 }
 
 class SettingsProvider extends ChangeNotifier {
@@ -126,6 +137,10 @@ class SettingsProvider extends ChangeNotifier {
       if (value is! bool) throw const FormatException('Value must be a boolean');
       return value;
     }
+    if (setting is Setting<int>) {
+      if (value is! int) throw const FormatException('Value must be an integer');
+      return value;
+    }
     if (setting is Setting<Brightness?>) {
       return switch (value) {
         null || 'system' => null,
@@ -138,7 +153,7 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   Object? _encode(Setting<Object?> setting, Object? value) {
-    if (setting is Setting<String> || setting is Setting<bool>) return value;
+    if (setting is Setting<String> || setting is Setting<bool> || setting is Setting<int>) return value;
     if (setting is Setting<Brightness?>) {
       return switch (value) {
         null => 'system',

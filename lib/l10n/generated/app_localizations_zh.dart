@@ -122,6 +122,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get notify_me => '提醒我寫日誌';
 
   @override
+  String get notification_permission_required => '需要通知權限才能啟用提醒';
+
+  @override
+  String get notification_not_supported => '目前平台不支援每日提醒';
+
+  @override
+  String get notification_time => '提醒時間';
+
+  @override
+  String get daily_reminder_body => '花點時間寫下今天的心情吧。';
+
+  @override
   String get page_calendar => '日曆';
 
   @override

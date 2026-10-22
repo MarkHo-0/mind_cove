@@ -122,6 +122,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notify_me => 'Notify me to write';
 
   @override
+  String get notification_permission_required => 'Allow notifications to enable reminders';
+
+  @override
+  String get notification_not_supported => 'Daily reminders are not supported on this platform';
+
+  @override
+  String get notification_time => 'Reminder time';
+
+  @override
+  String get daily_reminder_body => 'Take a moment to write in your diary.';
+
+  @override
   String get page_calendar => 'Calendar';
 
   @override

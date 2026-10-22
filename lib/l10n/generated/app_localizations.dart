@@ -284,6 +284,30 @@ abstract class AppLocalizations {
   /// **'Notify me to write'**
   String get notify_me;
 
+  /// No description provided for @notification_permission_required.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow notifications to enable reminders'**
+  String get notification_permission_required;
+
+  /// No description provided for @notification_not_supported.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily reminders are not supported on this platform'**
+  String get notification_not_supported;
+
+  /// No description provided for @notification_time.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder time'**
+  String get notification_time;
+
+  /// No description provided for @daily_reminder_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a moment to write in your diary.'**
+  String get daily_reminder_body;
+
   /// No description provided for @page_calendar.
   ///
   /// In en, this message translates to:
