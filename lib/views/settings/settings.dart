@@ -4,6 +4,7 @@ import 'package:mind_cove/views/_share/styles/padding.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/settings.dart';
+import 'data_transfer_settings.dart';
 import 'edit_username_popup.dart';
 
 class SettingsView extends StatefulWidget {
@@ -92,6 +93,8 @@ class _SettingsViewState extends State<SettingsView> with AutomaticKeepAliveClie
               onChanged: (value) => settings.set(AppSettings.notificationsEnabled, value),
             ),
           ),
+          Divider(height: 40, thickness: 1),
+          const DataTransferSettings(),
         ],
       ),
     );

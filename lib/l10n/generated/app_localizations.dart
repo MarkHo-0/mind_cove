@@ -164,6 +164,54 @@ abstract class AppLocalizations {
   /// **'Edit Name'**
   String get edit_username;
 
+  /// No description provided for @export_data.
+  ///
+  /// In en, this message translates to:
+  /// **'Export Data'**
+  String get export_data;
+
+  /// No description provided for @import_data.
+  ///
+  /// In en, this message translates to:
+  /// **'Import Data'**
+  String get import_data;
+
+  /// No description provided for @import_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'This archive contains {count} diaries. Clear current data before importing, or overwrite matching files?'**
+  String import_confirm(Object count);
+
+  /// No description provided for @clear_and_import.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear and Import'**
+  String get clear_and_import;
+
+  /// No description provided for @overwrite.
+  ///
+  /// In en, this message translates to:
+  /// **'Overwrite'**
+  String get overwrite;
+
+  /// No description provided for @data_transfer_success.
+  ///
+  /// In en, this message translates to:
+  /// **'Data transfer completed'**
+  String get data_transfer_success;
+
+  /// No description provided for @send.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get send;
+
+  /// No description provided for @data_transfer_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Data transfer failed: {error}'**
+  String data_transfer_failed(Object error);
+
   /// No description provided for @detail.
   ///
   /// In en, this message translates to:

@@ -11,17 +11,20 @@ import 'package:provider/provider.dart';
 import 'providers/settings.dart';
 import 'providers/diary_index.dart';
 import 'providers/views.dart';
+import 'services/app_restart.dart';
 import 'theme.dart';
 
 void main() async {
   runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider<SettingsProvider>(create: (_) => SettingsProvider()),
-        ChangeNotifierProvider<DiaryIndexProvider>(create: (_) => DiaryIndexProvider()),
-        ChangeNotifierProvider<ViewsProvider>(create: (_) => ViewsProvider()),
-      ],
-      child: const MainApp(),
+    AppRestart(
+      child: MultiProvider(
+        providers: [
+          ChangeNotifierProvider<SettingsProvider>(create: (_) => SettingsProvider()),
+          ChangeNotifierProvider<DiaryIndexProvider>(create: (_) => DiaryIndexProvider()),
+          ChangeNotifierProvider<ViewsProvider>(create: (_) => ViewsProvider()),
+        ],
+        child: const MainApp(),
+      ),
     ),
   );
 }

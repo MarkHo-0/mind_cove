@@ -48,6 +48,34 @@ class AppLocalizationsZh extends AppLocalizations {
   String get edit_username => '修改名稱';
 
   @override
+  String get export_data => '導出數據';
+
+  @override
+  String get import_data => '導入數據';
+
+  @override
+  String import_confirm(Object count) {
+    return 'ZIP 檔案包含 $count 篇日記。要先清空目前數據再導入，還是覆蓋同名檔案？';
+  }
+
+  @override
+  String get clear_and_import => '清空後導入';
+
+  @override
+  String get overwrite => '直接覆蓋';
+
+  @override
+  String get data_transfer_success => '數據處理完成';
+
+  @override
+  String get send => '發送';
+
+  @override
+  String data_transfer_failed(Object error) {
+    return '數據處理失敗：$error';
+  }
+
+  @override
   String get detail => '詳情';
 
   @override

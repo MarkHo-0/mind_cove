@@ -48,6 +48,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get edit_username => 'Edit Name';
 
   @override
+  String get export_data => 'Export Data';
+
+  @override
+  String get import_data => 'Import Data';
+
+  @override
+  String import_confirm(Object count) {
+    return 'This archive contains $count diaries. Clear current data before importing, or overwrite matching files?';
+  }
+
+  @override
+  String get clear_and_import => 'Clear and Import';
+
+  @override
+  String get overwrite => 'Overwrite';
+
+  @override
+  String get data_transfer_success => 'Data transfer completed';
+
+  @override
+  String get send => 'Send';
+
+  @override
+  String data_transfer_failed(Object error) {
+    return 'Data transfer failed: $error';
+  }
+
+  @override
   String get detail => 'Detail';
 
   @override
