@@ -206,21 +206,6 @@ jobs:
           distribution: temurin
           java-version: ${{ steps.java.outputs.version }}
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v4
-        with:
-          packages: platform-tools
-
-      - name: Install Android compile SDK
-        run: |
-          COMPILE_SDK=$(grep -m1 -E '^android\.compileSdk=' android/gradle.properties | cut -d= -f2 | tr -d '[:space:]')
-          if [[ ! $COMPILE_SDK =~ ^[0-9]+$ ]]; then
-            echo "::error::Cannot resolve android.compileSdk from android/gradle.properties."
-            exit 1
-          fi
-          yes | sdkmanager --licenses >/dev/null || true
-          sdkmanager "platforms;android-${COMPILE_SDK}"
-
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
