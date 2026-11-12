@@ -207,6 +207,9 @@ jobs:
           java-version: ${{ steps.java.outputs.version }}
 
       - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android compile SDK
         run: |
           COMPILE_SDK=$(grep -m1 -E '^android\.compileSdk=' android/gradle.properties | cut -d= -f2 | tr -d '[:space:]')
           if [[ ! $COMPILE_SDK =~ ^[0-9]+$ ]]; then
