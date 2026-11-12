@@ -1,6 +1,5 @@
 import java.util.Properties
 import java.io.FileInputStream
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("com.android.application")
@@ -15,7 +14,7 @@ if (keystorePropertiesFile.exists()) {
 
 configure<com.android.build.api.dsl.ApplicationExtension> {
     namespace = "hk.mark.mind_cove"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = providers.gradleProperty("android.compileSdk").map(String::toInt).get()
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -60,9 +59,9 @@ configure<com.android.build.api.dsl.ApplicationExtension> {
     }
 }
 
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+kotlin {
     compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_17)
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
     }
 }
 

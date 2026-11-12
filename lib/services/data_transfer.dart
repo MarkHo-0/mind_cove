@@ -53,8 +53,6 @@ Future<ExportedData?> exportData({required String dialogTitle}) async {
     bytes: exportedData.bytes,
     mimeType: 'application/zip',
     dialogTitle: dialogTitle,
-    type: FileType.custom,
-    allowedExtensions: ['zip'],
   );
   return savedUri == null ? null : exportedData;
 }
